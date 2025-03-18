@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Loader2 } from "lucide-react";
 import useEventForm from "../hooks/useEventForm";
 import useProjects from "../hooks/useProjects";
 
@@ -74,7 +75,8 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
           control={form.control}
           name="project"
           render={({ field }) => (
-            <FormItem>
+        
+            <FormItem >
               <FormLabel>Project</FormLabel>
               <Select
                 onValueChange={(value) => {
@@ -82,11 +84,17 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
                   setSelectedProject(value);
                 }}
                 defaultValue={field.value}
-                disabled={loading || isLoading}
+                disabled={isLoading}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
+                    {isLoading ? (
+                      <div className="w-25">
+                        <Loader2 className="animate-spin h-5 w-5 " />
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select a project" />
+                    )}
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -97,8 +105,11 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage>{form.formState.errors.project?.message}</FormMessage>
+              <FormMessage>
+                {form.formState.errors.project?.message}
+              </FormMessage>
             </FormItem>
+
           )}
         />
 
@@ -160,7 +171,7 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
         />
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Adding..." : "Add Event"}
+          {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Add Event"}
         </Button>
       </form>
     </Form>
