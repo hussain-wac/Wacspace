@@ -1,0 +1,115 @@
+/* calendarStyles.css */
+
+/* Base Calendar Styles */
+.rbc-calendar {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  
+  /* Header Styles */
+  .rbc-header {
+    color: var(--text-color);
+    background-color: var(--header-bg-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px;
+    font-weight: 600;
+  }
+  
+  /* View Containers */
+  .rbc-month-view, 
+  .rbc-time-view {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+  }
+  
+  /* Date Cells */
+  .rbc-date-cell {
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 5px;
+  }
+  
+  /* Off-range Dates */
+  .rbc-off-range-bg {
+    background-color: var(--off-range-bg-color);
+  }
+  .rbc-off-range {
+    color: var(--muted-text-color);
+  }
+  
+  /* Today Styling */
+  .today-cell {
+    background-color: var(--today-bg-color) !important;
+    color: var(--today-text-color) !important;
+    font-weight: bold !important;
+  }
+  
+  /* Time-related Elements */
+  .rbc-time-header {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .rbc-time-content {
+    border-top: 1px solid var(--border-color);
+  }
+  .rbc-time-gutter {
+    color: var(--text-color);
+  }
+  .rbc-timeslot-group {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Agenda View */
+  .rbc-agenda-view table.rbc-agenda-table {
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+  }
+  .rbc-agenda-view table.rbc-agenda-table thead > tr > th,
+  .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Toolbar Buttons */
+  .rbc-toolbar {
+    margin-bottom: 15px;
+  }
+  .rbc-toolbar button {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-right: 5px;
+  }
+  .rbc-toolbar button:hover {
+    background-color: var(--active-button-bg);
+  }
+  .rbc-toolbar button.rbc-active {
+    background-color: var(--active-button-bg);
+    color: var(--text-color);
+    font-weight: bold;
+  }
+  
+  /* Cell Borders */
+  .rbc-month-row {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .rbc-day-bg + .rbc-day-bg {
+    border-left: 1px solid var(--border-color);
+  }
+  .rbc-day-slot .rbc-time-slot {
+    border-top: 1px solid var(--border-color);
+  }
+  
+  /* Day Numbers */
+  .rbc-day-number {
+    font-size: 1.1em;
+    padding: 5px 8px;
+  }
+  
+  /* Make sure all cells have consistent background */
+  .rbc-day-bg {
+    background-color: var(--bg-color);
+  }
+  
