@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -17,18 +17,17 @@ import {
   SelectValue,
 } from "./ui/select";
 import useEventForm from "../hooks/useEventForm";
+import useProjects from "../hooks/useProjects";
 
+const EventForm = ({ initialStart, initialEnd, onClose }) => {
+  const { form, loading, onSubmit } = useEventForm({
+    initialStart,
+    initialEnd,
+    onClose,
+  });
 
-const EventForm = ({ initialStart, initialEnd, onClose}) => {
-  const { form, loading, onSubmit } = useEventForm({ initialStart, initialEnd, onClose});
-
-
-
-  const projectOptions = [
-    { value: "project1", label: "Project 1" },
-    { value: "project2", label: "Project 2" },
-    { value: "project3", label: "Project 3" },
-  ];
+  const { projectOptions, taskOptions, isLoading } = useProjects();
+  const [selectedProject, setSelectedProject] = useState("");
 
   return (
     <Form {...form}>
@@ -40,7 +39,11 @@ const EventForm = ({ initialStart, initialEnd, onClose}) => {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="Enter event title" {...field} disabled={loading} />
+                <Input
+                  placeholder="Enter event title"
+                  {...field}
+                  disabled={loading}
+                />
               </FormControl>
               <FormMessage>{form.formState.errors.title?.message}</FormMessage>
             </FormItem>
@@ -54,9 +57,15 @@ const EventForm = ({ initialStart, initialEnd, onClose}) => {
             <FormItem>
               <FormLabel>Organizer Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter organizer name" {...field} disabled={loading} />
+                <Input
+                  placeholder="Enter organizer name"
+                  {...field}
+                  disabled={loading}
+                />
               </FormControl>
-              <FormMessage>{form.formState.errors.organizer?.message}</FormMessage>
+              <FormMessage>
+                {form.formState.errors.organizer?.message}
+              </FormMessage>
             </FormItem>
           )}
         />
@@ -67,7 +76,14 @@ const EventForm = ({ initialStart, initialEnd, onClose}) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setSelectedProject(value);
+                }}
+                defaultValue={field.value}
+                disabled={loading || isLoading}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a project" />
@@ -82,6 +98,35 @@ const EventForm = ({ initialStart, initialEnd, onClose}) => {
                 </SelectContent>
               </Select>
               <FormMessage>{form.formState.errors.project?.message}</FormMessage>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="task"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Task</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={loading || isLoading || !selectedProject}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a task" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {taskOptions(selectedProject).map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage>{form.formState.errors.task?.message}</FormMessage>
             </FormItem>
           )}
         />

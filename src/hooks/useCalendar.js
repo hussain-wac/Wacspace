@@ -24,6 +24,8 @@ const useCalendar = () => {
     end: new Date(event.end),
   })) || [];
 
+  console.log(events)
+
   const [view, setView] = useState("month");
   const onView = (newView) => setView(newView);
 
