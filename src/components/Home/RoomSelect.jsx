@@ -1,17 +1,40 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Check, Monitor, Wifi, Coffee } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const rooms = [
-  { id: 1, name: "Conference A", capacity: 8, features: ["Video", "Whiteboard"] },
-  { id: 2, name: "Huddle B", capacity: 4, features: ["Video"] },
-  { id: 3, name: "Board Room", capacity: 12, features: ["Video", "Whiteboard", "Catering"] },
+  {
+    id: 1,
+    name: "Conference A",
+    capacity: 8,
+    features: ["Video", "Whiteboard"],
+  },
+  {
+    id: 2,
+    name: "Huddle B",
+    capacity: 4,
+    features: ["Video"],
+  },
+  {
+    id: 3,
+    name: "Board Room",
+    capacity: 12,
+    features: ["Video", "Whiteboard", "Catering"],
+  },
 ];
 
 const featureIcons = {
   Video: <Monitor className="w-5 h-5" />,
   Whiteboard: <Wifi className="w-5 h-5" />,
   Catering: <Coffee className="w-5 h-5" />,
+};
+
+const featureTooltips = {
+  Video: "High-quality video conferencing",
+  Whiteboard: "Interactive digital whiteboard",
+  Catering: "Food and beverage service",
 };
 
 function RoomSelect() {
@@ -25,100 +48,89 @@ function RoomSelect() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white dark:from-stone-900 dark:to-stone-950 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8 text-indigo-900 dark:text-indigo-200 animate-fade-in">
-          Pick Your Room
-        </h2>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 py-12 px-6 flex flex-col items-center transition-colors duration-300">
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-4xl md:text-5xl font-extrabold text-center mb-12 text-neutral-800 dark:text-neutral-100"
+      >
+        Select a Room
+      </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-5xl w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {rooms.map((room) => (
-            <div
+            <motion.div
               key={room.id}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedRoom(room.id)}
-              className={`relative p-6 rounded-xl bg-white dark:bg-stone-800 shadow-md cursor-pointer transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
-                selectedRoom === room.id 
-                  ? "ring-2 ring-indigo-500 scale-105" 
-                  : "hover:ring-2 hover:ring-indigo-300 dark:hover:ring-indigo-700"
+              className={`relative p-6 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 
+                shadow-lg cursor-pointer transition-all duration-300 flex flex-col items-center text-center 
+                text-neutral-700 dark:text-neutral-200 group ${
+                selectedRoom === room.id ? "ring-2 ring-neutral-400 dark:ring-neutral-500" : ""
               }`}
             >
+              {/* Hover overlay */}
+              <div className="absolute inset-0 rounded-xl bg-neutral-100 dark:bg-neutral-700 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+
               {selectedRoom === room.id && (
-                <Check className="absolute top-2 right-2 w-6 h-6 text-indigo-500 animate-bounce" />
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute top-3 right-3 w-6 h-6 bg-neutral-700 dark:bg-neutral-500 rounded-full flex items-center justify-center text-white"
+                >
+                  <Check className="w-4 h-4" />
+                </motion.div>
               )}
 
-              <h3 className="text-xl font-semibold text-indigo-900 dark:text-indigo-100 mb-3">
-                {room.name}
-              </h3>
+              <h3 className="text-xl font-semibold mb-4 z-10">{room.name}</h3>
 
-              <div className="flex items-center text-stone-600 dark:text-stone-300 mb-4">
-                <Users className="w-5 h-5 mr-2" />
-                <span>{room.capacity} seats</span>
+              <div className="flex items-center mb-4 z-10">
+                <Users className="w-5 h-5 mr-2 text-neutral-500 dark:text-neutral-400" />
+                <span className="text-base font-medium">{room.capacity} seats</span>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 z-10">
                 {room.features.map((feature) => (
-                  <div
+                  <motion.div
                     key={feature}
-                    className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full text-indigo-700 dark:text-indigo-300 tooltip"
-                    data-tip={feature}
+                    whileHover={{ scale: 1.1 }}
+                    className="relative p-2 bg-neutral-200 dark:bg-neutral-700 rounded-full text-neutral-600 dark:text-neutral-300 tooltip"
+                    data-tooltip={featureTooltips[feature]}
                   >
                     {featureIcons[feature]}
-                  </div>
+                    {/* Tooltip */}
+                    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-800 dark:bg-neutral-600 text-white dark:text-neutral-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      {featureTooltips[feature]}
+                    </span>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        <button
-          onClick={handleContinue}
-          disabled={!selectedRoom}
-          className={`mt-10 mx-auto block px-8 py-3 rounded-full font-semibold text-lg transition-all duration-300 ${
-            selectedRoom
-              ? "bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105 active:scale-95 shadow-lg"
-              : "bg-stone-200 text-stone-400 cursor-not-allowed"
-          }`}
-        >
-          Got to room
-        </button>
-
-        <style>{`
-          .animate-fade-in {
-            animation: fadeIn 0.5s ease-in;
-          }
-
-          .animate-bounce {
-            animation: bounce 0.5s infinite alternate;
-          }
-
-          .tooltip {
-            position: relative;
-          }
-
-          .tooltip:hover:after {
-            content: attr(data-tip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 4px 8px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-
-          @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-4px); }
-          }
-        `}</style>
+        <div className="flex justify-center mt-10">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              onClick={handleContinue}
+              disabled={!selectedRoom}
+              className={`px-8 py-3 rounded-full font-semibold text-base shadow-md transition-all duration-300
+                ${
+                  selectedRoom
+                    ? "bg-neutral-800 dark:bg-neutral-600 text-white hover:bg-neutral-900 dark:hover:bg-neutral-700"
+                    : "bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
+                }`}
+            >
+              Proceed to Booking
+            </Button>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

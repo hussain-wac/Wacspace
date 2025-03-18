@@ -14,7 +14,12 @@ const fetcher = async (url) => {
 const useProjects = () => {
   const { data, error, isLoading } = useSWR(
     `${import.meta.env.VITE_BASE_URL}/api/projects`,
-    fetcher
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   );
 
   const projectOptions = data
