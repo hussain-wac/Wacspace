@@ -32,7 +32,11 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent }) => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Project</p>
-              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.project}</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.projectName}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Task</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.taskName}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Start Time</p>

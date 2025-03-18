@@ -13,6 +13,7 @@ const eventSchema = z
     title: z.string().min(3, "Title must be at least 3 characters"),
     organizer: z.string().min(3, "Organizer name must be at least 3 characters"),
     project: z.string().nonempty("Please select a project"),
+    task: z.string().nonempty("Please select a task"),
     start: z.string().nonempty("Start time is required"),
     end: z.string().nonempty("End time is required"),
   })
@@ -24,7 +25,7 @@ const eventSchema = z
 const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const { handleAddEvent } = useCalendar();
   const [loading, setLoading] = useState(false);
-  const user =useAtomValue(globalState);
+  const user = useAtomValue(globalState);
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -32,6 +33,7 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       title: "Team meeting",
       organizer: user.name,
       project: "",
+      task: "",
       start: initialStart ? moment(initialStart).format("YYYY-MM-DDTHH:mm") : "",
       end: initialEnd ? moment(initialEnd).format("YYYY-MM-DDTHH:mm") : "",
       roomId: roomId,
@@ -45,12 +47,13 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       title: data.title,
       organizer: data.organizer,
       project: data.project,
+      task: data.task,
       start: dayjs(data.start).toISOString(),
       end: dayjs(data.end).toISOString(),
       roomId: roomId,
       email: user.email,
     };
-
+    console.log(eventData)
     try {
       await handleAddEvent(eventData);
       form.reset();
