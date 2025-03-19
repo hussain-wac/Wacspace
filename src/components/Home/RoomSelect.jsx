@@ -1,16 +1,27 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Check, Monitor, Wifi, Coffee } from "lucide-react";
+import { 
+  Users, 
+  Check, 
+  Video, 
+  PenSquare, 
+  Coffee, 
+  Monitor,    // Replaced ProjectorScreen with Monitor
+  Mic, 
+  Tv 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Avail from "./Avail";
-import useRooms from "../../hooks/useRooms"; // Adjust the path based on your project structure
+import useRooms from "../../hooks/useRooms";
 
 const featureIcons = {
-  Video: <Monitor className="w-5 h-5" />,
-  Whiteboard: <Wifi className="w-5 h-5" />,
+  Video: <Video className="w-5 h-5" />,
+  Whiteboard: <PenSquare className="w-5 h-5" />,
   Catering: <Coffee className="w-5 h-5" />,
-  Projector: <Monitor className="w-5 h-5" />,
+  Projector: <Monitor className="w-5 h-5" />,  // Changed to Monitor
+  Audio: <Mic className="w-5 h-5" />,
+  Television: <Tv className="w-5 h-5" />,
 };
 
 const featureTooltips = {
@@ -18,15 +29,16 @@ const featureTooltips = {
   Whiteboard: "Interactive digital whiteboard",
   Catering: "Food and beverage service",
   Projector: "Presentation projector",
+  Audio: "Premium audio system",
+  Television: "Large screen television",
 };
 
 function RoomSelect() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const navigate = useNavigate();
 
-  // Get the current date (today) dynamically
   const now = new Date();
-  const formattedDate = now.toISOString().split("T")[0]; // e.g., "2025-03-18" or today's actual date
+  const formattedDate = now.toISOString().split("T")[0];
 
   const { rooms, isLoading, isError } = useRooms(formattedDate);
 
@@ -64,7 +76,6 @@ function RoomSelect() {
       </motion.h2>
 
       <div className="max-w-5xl w-full">
-        {/* Display the current date */}
         <p className="text-center text-neutral-600 dark:text-neutral-400 mb-6">
           Availability for {now.toLocaleDateString()}
         </p>
@@ -105,17 +116,19 @@ function RoomSelect() {
 
               <div className="flex gap-3 mb-4 z-10">
                 {room.features.map((feature) => (
-                  <motion.div
-                    key={feature}
-                    whileHover={{ scale: 1.1 }}
-                    className="relative p-2 bg-neutral-200 dark:bg-neutral-700 rounded-full text-neutral-600 dark:text-neutral-300 tooltip"
-                    data-tooltip={featureTooltips[feature]}
-                  >
-                    {featureIcons[feature]}
-                    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-800 dark:bg-neutral-600 text-white dark:text-neutral-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                      {featureTooltips[feature]}
-                    </span>
-                  </motion.div>
+                  featureIcons[feature] && (
+                    <motion.div
+                      key={feature}
+                      whileHover={{ scale: 1.1 }}
+                      className="relative p-2 bg-neutral-200 dark:bg-neutral-700 rounded-full text-neutral-600 dark:text-neutral-300 tooltip"
+                      data-tooltip={featureTooltips[feature]}
+                    >
+                      {featureIcons[feature]}
+                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-800 dark:bg-neutral-600 text-white dark:text-neutral-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                        {featureTooltips[feature]}
+                      </span>
+                    </motion.div>
+                  )
                 ))}
               </div>
 
