@@ -3,49 +3,54 @@ import { useNavigate } from "react-router-dom";
 import { Users, Check, Monitor, Wifi, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
-const rooms = [
-  {
-    id: 1,
-    name: "Conference A",
-    capacity: 8,
-    features: ["Video", "Whiteboard"],
-  },
-  {
-    id: 2,
-    name: "Huddle B",
-    capacity: 4,
-    features: ["Video"],
-  },
-  {
-    id: 3,
-    name: "Board Room",
-    capacity: 12,
-    features: ["Video", "Whiteboard", "Catering"],
-  },
-];
+import Avail from "./Avail";
+import useRooms from "../../hooks/useRooms"; // Adjust the path based on your project structure
 
 const featureIcons = {
   Video: <Monitor className="w-5 h-5" />,
   Whiteboard: <Wifi className="w-5 h-5" />,
   Catering: <Coffee className="w-5 h-5" />,
+  Projector: <Monitor className="w-5 h-5" />,
 };
 
 const featureTooltips = {
   Video: "High-quality video conferencing",
   Whiteboard: "Interactive digital whiteboard",
   Catering: "Food and beverage service",
+  Projector: "Presentation projector",
 };
 
 function RoomSelect() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const navigate = useNavigate();
 
+  // Get the current date (today) dynamically
+  const now = new Date();
+  const formattedDate = now.toISOString().split("T")[0]; // e.g., "2025-03-18" or today's actual date
+
+  const { rooms, isLoading, isError } = useRooms(formattedDate);
+
   const handleContinue = () => {
     if (selectedRoom) {
       navigate(`/schedule?roomId=${selectedRoom}`);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center">
+        <p className="text-neutral-800 dark:text-neutral-100">Loading rooms...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center">
+        <p className="text-red-600 dark:text-red-400">Error loading rooms: {isError.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 py-12 px-6 flex flex-col items-center transition-colors duration-300">
@@ -59,23 +64,27 @@ function RoomSelect() {
       </motion.h2>
 
       <div className="max-w-5xl w-full">
+        {/* Display the current date */}
+        <p className="text-center text-neutral-600 dark:text-neutral-400 mb-6">
+          Availability for {now.toLocaleDateString()}
+        </p>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {rooms.map((room) => (
             <motion.div
-              key={room.id}
+              key={room.roomId}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedRoom(room.id)}
+              onClick={() => setSelectedRoom(room.roomId)}
               className={`relative p-6 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 
                 shadow-lg cursor-pointer transition-all duration-300 flex flex-col items-center text-center 
                 text-neutral-700 dark:text-neutral-200 group ${
-                selectedRoom === room.id ? "ring-2 ring-neutral-400 dark:ring-neutral-500" : ""
+                selectedRoom === room.roomId ? "ring-2 ring-neutral-400 dark:ring-neutral-500" : ""
               }`}
             >
-              {/* Hover overlay */}
               <div className="absolute inset-0 rounded-xl bg-neutral-100 dark:bg-neutral-700 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
 
-              {selectedRoom === room.id && (
+              {selectedRoom === room.roomId && (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -85,14 +94,16 @@ function RoomSelect() {
                 </motion.div>
               )}
 
-              <h3 className="text-xl font-semibold mb-4 z-10">{room.name}</h3>
+              <h3 className="text-xl font-semibold mb-4 z-10">
+                {room.name || `Room ${room.roomId}`}
+              </h3>
 
               <div className="flex items-center mb-4 z-10">
                 <Users className="w-5 h-5 mr-2 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-base font-medium">{room.capacity} seats</span>
+                <span className="text-base font-medium">{room.capacity || "N/A"} seats</span>
               </div>
 
-              <div className="flex gap-3 z-10">
+              <div className="flex gap-3 mb-4 z-10">
                 {room.features.map((feature) => (
                   <motion.div
                     key={feature}
@@ -101,22 +112,27 @@ function RoomSelect() {
                     data-tooltip={featureTooltips[feature]}
                   >
                     {featureIcons[feature]}
-                    {/* Tooltip */}
                     <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-800 dark:bg-neutral-600 text-white dark:text-neutral-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                       {featureTooltips[feature]}
                     </span>
                   </motion.div>
                 ))}
               </div>
+
+              <Avail
+                roomId={room.roomId}
+                availability={{
+                  totalAvailableMinutes: room.totalAvailableMinutes,
+                  availabilityPercentage: room.availabilityPercentage,
+                  availableSlots: room.availableSlots,
+                }}
+              />
             </motion.div>
           ))}
         </div>
 
         <div className="flex justify-center mt-10">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={handleContinue}
               disabled={!selectedRoom}
