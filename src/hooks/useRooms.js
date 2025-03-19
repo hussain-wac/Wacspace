@@ -6,7 +6,7 @@ import axios from "axios";
 const fetcher = (url) => axios.get(url).then((res) => res.data);
 
 const useRooms = (date) => {
-  const apiUrl = `http://localhost:5000/api/rooms/availability/${date}`;
+  const apiUrl = `${import.meta.env.VITE_BASE_URL}/api/rooms/availability/${date}`;
 
   const { data, error, isLoading } = useSWR(apiUrl, fetcher, {
     revalidateOnFocus: false, // Optional: Prevents revalidation on window focus
