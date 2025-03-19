@@ -1,6 +1,7 @@
 import React from 'react';
 
 function Avail({ roomId, availability }) {
+  // console.log(availability)
     const formatTime = (dateString) => {
       return new Date(dateString).toLocaleTimeString([], {
         hour: "2-digit",

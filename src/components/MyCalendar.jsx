@@ -20,7 +20,7 @@ const MyCalendar = ({ roomId }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const isDarkMode = useDarkMode();
 
-  console.log(events);
+  // console.log(events);
 
   const closeAddEventModal = () => {
     setOpenAddEvent(false);
@@ -38,6 +38,11 @@ const MyCalendar = ({ roomId }) => {
   };
 
   const handleSelectSlot = (slotInfo) => {
+    const now = new Date();
+    if (slotInfo.start < now) {
+      alert("You cannot add events in the past!");
+      return;
+    }
     setSelectedSlot(slotInfo);
     setOpenAddEvent(true);
   };
@@ -153,7 +158,8 @@ const MyCalendar = ({ roomId }) => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-       <Calendar
+  
+<Calendar
   localizer={localizer}
   events={events}
   views={["month", "week", "day", "agenda"]}
@@ -168,8 +174,7 @@ const MyCalendar = ({ roomId }) => {
   selectable
   onSelectSlot={handleSelectSlot}
   onSelectEvent={handleSelectEvent}
-  // min={new Date(1970, 1, 1, 9, 0, 0)} // 9 AM
-  // max={new Date(1970, 1, 1, 18, 0, 0)} // 6 PM
+  min={new Date()} // Prevent selecting past times
 />
 
         </motion.div>
