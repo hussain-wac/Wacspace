@@ -6,11 +6,10 @@ import {
   Video, 
   PenSquare, 
   Coffee, 
-  Monitor,    // Replaced ProjectorScreen with Monitor
+  Monitor,
   Mic, 
   Tv 
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Avail from "./Avail";
 import useRooms from "../../hooks/useRooms";
@@ -19,7 +18,7 @@ const featureIcons = {
   Video: <Video className="w-5 h-5" />,
   Whiteboard: <PenSquare className="w-5 h-5" />,
   Catering: <Coffee className="w-5 h-5" />,
-  Projector: <Monitor className="w-5 h-5" />,  // Changed to Monitor
+  Projector: <Monitor className="w-5 h-5" />,
   Audio: <Mic className="w-5 h-5" />,
   Television: <Tv className="w-5 h-5" />,
 };
@@ -34,7 +33,6 @@ const featureTooltips = {
 };
 
 function RoomSelect() {
-  const [selectedRoom, setSelectedRoom] = useState(null);
   const navigate = useNavigate();
 
   const now = new Date();
@@ -42,10 +40,8 @@ function RoomSelect() {
 
   const { rooms, isLoading, isError } = useRooms(formattedDate);
 
-  const handleContinue = () => {
-    if (selectedRoom) {
-      navigate(`/schedule?roomId=${selectedRoom}`);
-    }
+  const handleRoomSelect = (roomId) => {
+    navigate(`/schedule?roomId=${roomId}`);
   };
 
   if (isLoading) {
@@ -86,24 +82,12 @@ function RoomSelect() {
               key={room.roomId}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedRoom(room.roomId)}
-              className={`relative p-6 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 
+              onClick={() => handleRoomSelect(room.roomId)}
+              className="relative p-6 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 
                 shadow-lg cursor-pointer transition-all duration-300 flex flex-col items-center text-center 
-                text-neutral-700 dark:text-neutral-200 group ${
-                selectedRoom === room.roomId ? "ring-2 ring-neutral-400 dark:ring-neutral-500" : ""
-              }`}
+                text-neutral-700 dark:text-neutral-200 group"
             >
               <div className="absolute inset-0 rounded-xl bg-neutral-100 dark:bg-neutral-700 opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-
-              {selectedRoom === room.roomId && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-3 right-3 w-6 h-6 bg-neutral-700 dark:bg-neutral-500 rounded-full flex items-center justify-center text-white"
-                >
-                  <Check className="w-4 h-4" />
-                </motion.div>
-              )}
 
               <h3 className="text-xl font-semibold mb-4 z-10">
                 {room.name || `Room ${room.roomId}`}
@@ -142,23 +126,6 @@ function RoomSelect() {
               />
             </motion.div>
           ))}
-        </div>
-
-        <div className="flex justify-center mt-10">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={handleContinue}
-              disabled={!selectedRoom}
-              className={`px-8 py-3 rounded-full font-semibold text-base shadow-md transition-all duration-300
-                ${
-                  selectedRoom
-                    ? "bg-neutral-800 dark:bg-neutral-600 text-white hover:bg-neutral-900 dark:hover:bg-neutral-700"
-                    : "bg-neutral-300 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
-                }`}
-            >
-              Proceed to Booking
-            </Button>
-          </motion.div>
         </div>
       </div>
     </div>
