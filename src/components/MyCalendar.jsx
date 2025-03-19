@@ -153,22 +153,25 @@ const MyCalendar = ({ roomId }) => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Calendar
-            localizer={localizer}
-            events={events}
-            views={["month", "week", "day", "agenda"]}
-            view={view}
-            defaultView="week"
-            onView={onView}
-            startAccessor="start"
-            endAccessor="end"
-            className="h-full"
-            eventPropGetter={eventStyleGetter}
-            dayPropGetter={dayPropGetter}
-            selectable
-            onSelectSlot={handleSelectSlot}
-            onSelectEvent={handleSelectEvent}
-          />
+       <Calendar
+  localizer={localizer}
+  events={events}
+  views={["month", "week", "day", "agenda"]}
+  view={view}
+  defaultView="week"
+  onView={onView}
+  startAccessor="start"
+  endAccessor="end"
+  className="h-full"
+  eventPropGetter={eventStyleGetter}
+  dayPropGetter={dayPropGetter}
+  selectable
+  onSelectSlot={handleSelectSlot}
+  onSelectEvent={handleSelectEvent}
+  // min={new Date(1970, 1, 1, 9, 0, 0)} // 9 AM
+  // max={new Date(1970, 1, 1, 18, 0, 0)} // 6 PM
+/>
+
         </motion.div>
       )}
     </motion.div>
