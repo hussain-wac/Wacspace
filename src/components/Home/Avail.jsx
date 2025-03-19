@@ -23,7 +23,7 @@ function Avail({ roomId, availability }) {
         </div>
   
         {/* Available Slots */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           {availability.availableSlots.map((slot, index) => (
             <div
               key={index}
@@ -42,7 +42,7 @@ function Avail({ roomId, availability }) {
               </p>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
     );
   }

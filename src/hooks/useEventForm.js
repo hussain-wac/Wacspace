@@ -27,19 +27,24 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
-  const form = useForm({
-    resolver: zodResolver(eventSchema),
-    defaultValues: {
-      title: "Team meeting",
-      organizer: user.name,
-      project: "",
-      task: "",
-      start: initialStart ? moment(initialStart).format("YYYY-MM-DDTHH:mm") : "",
-      end: initialEnd ? moment(initialEnd).format("YYYY-MM-DDTHH:mm") : "",
-      roomId: roomId,
-      email: user.email,
-    },
-  });
+ const form = useForm({
+  resolver: zodResolver(eventSchema),
+  defaultValues: {
+    title: "Team meeting",
+    organizer: user.name,
+    project: "",
+    task: "",
+    start: initialStart 
+      ? moment(initialStart).format("YYYY-MM-DDTHH:mm") 
+      : moment().set({ hour: 9, minute: 0, second: 0 }).format("YYYY-MM-DDTHH:mm"),
+    end: initialEnd 
+      ? moment(initialEnd).format("YYYY-MM-DDTHH:mm") 
+      : moment().set({ hour: 10, minute: 0, second: 0 }).format("YYYY-MM-DDTHH:mm"), // Default end at 10 AM
+    roomId: roomId,
+    email: user.email,
+  },
+});
+
 
   const onSubmit = async (data) => {
     setLoading(true);
