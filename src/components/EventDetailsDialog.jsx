@@ -4,6 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "./ui/button";
 import moment from "moment";
 import { motion } from "framer-motion";
+import { useAtomValue } from "jotai";
+import { globalState } from "../jotai/globalState";
+
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -13,6 +16,8 @@ const modalVariants = {
 
 export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, onDelete }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const user = useAtomValue(globalState );
 
   if (!selectedEvent) return null;
 
@@ -77,12 +82,18 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Close
               </Button>
-              <Button variant="destructive" onClick={handleDelete}>
-                Delete
-              </Button>
-              <Button onClick={() => onEdit(selectedEvent)}>
-                Edit
-              </Button>
+
+              {user.email === selectedEvent.email ? (
+                <>
+                  <Button variant="destructive" onClick={handleDelete}>
+                    Delete
+                  </Button>
+                  <Button onClick={() => onEdit(selectedEvent)}>
+                    Edit
+                  </Button>
+                </>
+              ) : null}
+    
             </DialogFooter>
           </DialogContent>
         </motion.div>
