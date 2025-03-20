@@ -46,20 +46,30 @@ const useCalendar = (roomId) => {
       console.error("Error adding event:", err.response ? err.response.data : err.message);
     }
   };
-
   const handleUpdateEvent = async (eventId, updatedEvent) => {
     try {
+      const formattedEvent = {
+        title: updatedEvent.title,
+        start: new Date(updatedEvent.start).toISOString(),
+        end: new Date(updatedEvent.end).toISOString(),
+        roomId: effectiveRoomId, 
+      };
+  
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`,
-        updatedEvent,
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`, 
+        formattedEvent,
         { headers: { "Content-Type": "application/json" } }
       );
+  
+    console.log("Event updated successfully");
+  
       mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+  
     } catch (err) {
       console.error("Error updating event:", err.response ? err.response.data : err.message);
     }
   };
-
+  
   const handleDeleteEvent = async (eventId) => {
     try {
       await axios.delete(
