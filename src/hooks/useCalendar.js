@@ -27,7 +27,7 @@ const useCalendar = (roomId) => {
     end: new Date(event.end),
   })) || [];
 
-  const [view, setView] = useState("month");
+  const [view, setView] = useState("day");
   const onView = (newView) => setView(newView);
 
   const handleAddEvent = async (newEvent) => {

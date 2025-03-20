@@ -25,8 +25,6 @@ const MyCalendar = ({ roomId }) => {
     handleDeleteEvent,
     loading,
   } = useCalendar(roomId);
-
-  // Pass the events into your custom event handler hook.
   const {
     handleEditEvent,
     selectedEvent,
@@ -51,28 +49,48 @@ const MyCalendar = ({ roomId }) => {
     setSelectedEvent(null);
   };
 
-  const eventStyleGetter = (event) => ({
-    style: {
-      backgroundColor: event.color || (isDarkMode ? "#3B82F6" : "#93C5FD"),
-      color: "#fff",
-      borderRadius: "4px",
-      border: "none",
-      opacity: 1,
-      padding: "4px 8px",
-      fontWeight: "500",
-    },
-  });
+  const eventStyleGetter = (event) => {
+    const isPastEvent = moment(event.end).isBefore(moment());
+
+    return {
+      style: {
+        backgroundColor: isPastEvent
+          ? isDarkMode
+            ? "#4A4A4A" // Lighter gray for past events in dark mode
+            : "#6B7280" // Darker gray for past events in light mode
+          : event.color || (isDarkMode ? "#3B82F6" : "#93C5FD"),
+        color: isPastEvent ? (isDarkMode ? "#E5E7EB" : "#1F2937") : "#fff",
+        borderRadius: "4px",
+        border: "none",
+        opacity: isPastEvent ? 0.6 : 1, // Reduce opacity for past events
+        padding: "4px 8px",
+        fontWeight: "500",
+      },
+    };
+  };
 
   const dayPropGetter = (date) => {
     const today = moment().startOf("day").toDate();
     const isToday = moment(date).isSame(today, "day");
+    const isPast = moment(date).isBefore(today, "day");
+
     if (isToday) {
       return {
         style: {
           backgroundColor: isDarkMode ? "#2C2C2C" : "#EFF6FF",
           borderRadius: "4px",
+          cursor: "pointer", // Indicate clickability
         },
         className: "today-cell",
+        onClick: () => onView("day"), // Move to day view when clicked
+      };
+    } else if (isPast) {
+      return {
+        style: {
+          backgroundColor: isDarkMode ? "#3A3A3A" : "#B0B0B0",
+          color: isDarkMode ? "#D1D5DB" : "#374151",
+          opacity: 0.8,
+        },
       };
     }
     return {};
@@ -176,7 +194,7 @@ const MyCalendar = ({ roomId }) => {
             events={events}
             views={["month", "week", "day", "agenda"]}
             view={view}
-            defaultView="week"
+            defaultView="day" // Changed from "week" to "day"
             onView={onView}
             startAccessor="start"
             endAccessor="end"
