@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Users, 
-  Check, 
   Video, 
   PenSquare, 
   Coffee, 
   Monitor,
   Mic, 
-  Tv 
+  Tv ,
+  Loader2
+
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Avail from "./Avail";
@@ -44,9 +45,11 @@ function RoomSelect() {
     navigate(`/schedule?roomId=${roomId}`);
   };
 
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-neutral-800 dark:text-neutral-100" />
         <p className="text-neutral-800 dark:text-neutral-100">Loading rooms...</p>
       </div>
     );
