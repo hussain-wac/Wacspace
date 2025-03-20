@@ -1,3 +1,4 @@
+// MyCalendar.jsx
 import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -7,35 +8,19 @@ import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { EventDetailsDialog } from "./EventDetailsDialog";
-import { AddEventDialog } from "./AddEventDialog";
+import { EventFormDialog } from "./EventFormDialog";
 import "../styles/calendarStyles.css";
 
 const localizer = momentLocalizer(moment);
 
 const MyCalendar = ({ roomId }) => {
-  const { view, events, onView, handleAddEvent, loading } = useCalendar(roomId);
-  const [openAddEvent, setOpenAddEvent] = useState(false);
+  const { view, events, onView, handleAddEvent, handleUpdateEvent, loading } = useCalendar(roomId);
+  const [openFormDialog, setOpenFormDialog] = useState(false);
+  const [formInitialData, setFormInitialData] = useState(null);
+  const [onFormSubmit, setOnFormSubmit] = useState(null);
   const [openEventDetails, setOpenEventDetails] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const isDarkMode = useDarkMode();
-
-  // console.log(events);
-
-  const closeAddEventModal = () => {
-    setOpenAddEvent(false);
-    setSelectedSlot(null);
-  };
-
-  const closeEventDetailsModal = () => {
-    setOpenEventDetails(false);
-    setSelectedEvent(null);
-  };
-
-  const handleEventSubmit = async (eventData) => {
-    await handleAddEvent(eventData);
-    closeAddEventModal();
-  };
 
   const handleSelectSlot = (slotInfo) => {
     const now = new Date();
@@ -43,13 +28,27 @@ const MyCalendar = ({ roomId }) => {
       alert("You cannot add events in the past!");
       return;
     }
-    setSelectedSlot(slotInfo);
-    setOpenAddEvent(true);
+    setFormInitialData({ start: slotInfo.start, end: slotInfo.end, roomId });
+    setOnFormSubmit(() => handleAddEvent);
+    setOpenFormDialog(true);
   };
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setOpenEventDetails(true);
+  };
+
+  const handleEditEvent = (event) => {
+    setFormInitialData({
+      _id: event._id,
+      title: event.title,
+      start: event.start,
+      end: event.end,
+      roomId: event.roomId,
+    });
+    setOnFormSubmit(() => (updatedEvent) => handleUpdateEvent(event._id, updatedEvent));
+    setOpenFormDialog(true);
+    setOpenEventDetails(false);
   };
 
   const eventStyleGetter = (event) => ({
@@ -109,21 +108,22 @@ const MyCalendar = ({ roomId }) => {
       animate="visible"
     >
       <AnimatePresence>
-        <React.Fragment key="add-event-dialog">
-          <AddEventDialog
-            open={openAddEvent}
-            onOpenChange={setOpenAddEvent}
-            selectedSlot={selectedSlot}
-            onAddEvent={handleEventSubmit}
+        {openFormDialog && (
+          <EventFormDialog
+            open={openFormDialog}
+            onOpenChange={setOpenFormDialog}
+            initialData={formInitialData}
+            onSubmit={onFormSubmit}
           />
-        </React.Fragment>
-        <React.Fragment key="event-details-dialog">
+        )}
+        {openEventDetails && (
           <EventDetailsDialog
             open={openEventDetails}
             onOpenChange={setOpenEventDetails}
             selectedEvent={selectedEvent}
+            onEdit={handleEditEvent}
           />
-        </React.Fragment>
+        )}
       </AnimatePresence>
 
       {loading ? (
@@ -158,25 +158,23 @@ const MyCalendar = ({ roomId }) => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-  
-<Calendar
-  localizer={localizer}
-  events={events}
-  views={["month", "week", "day", "agenda"]}
-  view={view}
-  defaultView="week"
-  onView={onView}
-  startAccessor="start"
-  endAccessor="end"
-  className="h-full"
-  eventPropGetter={eventStyleGetter}
-  dayPropGetter={dayPropGetter}
-  selectable
-  onSelectSlot={handleSelectSlot}
-  onSelectEvent={handleSelectEvent}
-  min={new Date()} // Prevent selecting past times
-/>
-
+          <Calendar
+            localizer={localizer}
+            events={events}
+            views={["month", "week", "day", "agenda"]}
+            view={view}
+            defaultView="week"
+            onView={onView}
+            startAccessor="start"
+            endAccessor="end"
+            className="h-full"
+            eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayPropGetter}
+            selectable
+            onSelectSlot={handleSelectSlot}
+            onSelectEvent={handleSelectEvent}
+            min={new Date()}
+          />
         </motion.div>
       )}
     </motion.div>
