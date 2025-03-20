@@ -13,7 +13,6 @@ const useRooms = (date) => {
     refreshInterval: 60000, 
   });
 
-  // console.log(data)
   return {
     rooms: data || [],
     isLoading,
