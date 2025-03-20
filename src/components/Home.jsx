@@ -1,12 +1,14 @@
 import React from 'react'
-import MyCalendar from './MyCalendar'
 import RoomSelect from './Home/RoomSelect'
 import Navbar from './Layouts/Navbar'
+import NotificationComponent from './NotificationComponent'
+
 
 function Home() {
   return (
     <div className=' '>
         <Navbar/>
+{/* <NotificationComponent/>         */}
         <RoomSelect/>
     </div>
   )
