@@ -44,7 +44,6 @@ const eventSchema = z
 const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
 
   
-  console.log(selectedEvent)
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {

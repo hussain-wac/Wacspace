@@ -58,7 +58,6 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       roomId: roomId,
       email: user.email,
     };
-    // console.log(eventData)
     try {
       await handleAddEvent(eventData);
       form.reset();
