@@ -1,7 +1,9 @@
+// useCalendar.jsx
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from "react-router-dom";
+
 const fetcher = async (url) => {
   try {
     const response = await axios.get(url);
@@ -11,11 +13,12 @@ const fetcher = async (url) => {
     throw error;
   }
 };
-const useCalendar = () => {
+
+const useCalendar = (roomId) => {  // Changed to accept roomId as parameter
   const [searchParams] = useSearchParams();
-  const roomId = searchParams.get('roomId');
+  const effectiveRoomId = roomId || searchParams.get("roomId");
   const { data, error, isValidating } = useSWR(
-    `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${roomId}`, // Pass roomId in the URL
+    `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
     fetcher
   );
   const events = data?.map((event) => ({
@@ -24,8 +27,6 @@ const useCalendar = () => {
     end: new Date(event.end),
   })) || [];
 
-  // console.log(events);
-
   const [view, setView] = useState("month");
   const onView = (newView) => setView(newView);
 
@@ -33,30 +34,40 @@ const useCalendar = () => {
     try {
       const newEventWithRoomId = {
         ...newEvent,
-        roomId: roomId,  // Ensure roomId is included if required
+        roomId: effectiveRoomId,
       };
-  
-      // Make the POST request to add the new event
       await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/meetings`,
         newEventWithRoomId,
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { "Content-Type": "application/json" } }
       );
-  
-      // Use mutate to re-fetch the data and reflect the new event
-      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${roomId}`, undefined, { revalidate: true });
+      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
     } catch (err) {
       console.error("Error adding event:", err.response ? err.response.data : err.message);
     }
   };
-  
+
+  const handleUpdateEvent = async (eventId, updatedEvent) => {
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`,
+        updatedEvent,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+    } catch (err) {
+      console.error("Error updating event:", err.response ? err.response.data : err.message);
+    }
+  };
+
   return {
     error,
-    view, 
-    events, 
-    onView, 
-    handleAddEvent, 
-    loading: !data && !error && isValidating 
+    view,
+    events,
+    onView,
+    handleAddEvent,
+    handleUpdateEvent,
+    loading: !data && !error && isValidating,
   };
 };
 

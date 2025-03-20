@@ -1,3 +1,4 @@
+// EventDetailsDialog.jsx
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -10,7 +11,7 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2, ease: "easeIn" } },
 };
 
-export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent }) => {
+export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
   if (!selectedEvent) return null;
 
   return (
@@ -28,15 +29,15 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent }) => {
           <div className="space-y-4 py-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Organizer</p>
-              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.organizer}</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.organizer || "N/A"}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Project</p>
-              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.projectName}</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.projectName || "N/A"}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Task</p>
-              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.taskName}</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.taskName || "N/A"}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Start Time</p>
@@ -52,12 +53,15 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent }) => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
-              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.email}</p>
+              <p className="text-gray-900 dark:text-gray-100">{selectedEvent.email || "N/A"}</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
+            </Button>
+            <Button onClick={() => onEdit(selectedEvent)}>
+              Edit
             </Button>
           </DialogFooter>
         </DialogContent>
