@@ -1,4 +1,3 @@
-// useCalendar.jsx
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
@@ -19,13 +18,16 @@ const useCalendar = (roomId) => {
   const effectiveRoomId = roomId || searchParams.get("roomId");
   const { data, error, isValidating } = useSWR(
     `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
-  const events = data?.map((event) => ({
-    ...event,
-    start: new Date(event.start),
-    end: new Date(event.end),
-  })) || [];
+
+  const events =
+    data?.map((event) => ({
+      ...event,
+      start: new Date(event.start),
+      end: new Date(event.end),
+    })) || [];
 
   const [view, setView] = useState("day");
   const onView = (newView) => setView(newView);
@@ -41,43 +43,64 @@ const useCalendar = (roomId) => {
         newEventWithRoomId,
         { headers: { "Content-Type": "application/json" } }
       );
-      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+      mutate(
+        `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
+        undefined,
+        { revalidate: true }
+      );
     } catch (err) {
-      console.error("Error adding event:", err.response ? err.response.data : err.message);
+      console.error(
+        "Error adding event:",
+        err.response ? err.response.data : err.message
+      );
     }
   };
+
   const handleUpdateEvent = async (eventId, updatedEvent) => {
     try {
       const formattedEvent = {
         title: updatedEvent.title,
         start: new Date(updatedEvent.start).toISOString(),
         end: new Date(updatedEvent.end).toISOString(),
-        roomId: effectiveRoomId, 
+        roomId: effectiveRoomId,
       };
-  
+
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`, 
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`,
         formattedEvent,
         { headers: { "Content-Type": "application/json" } }
       );
-  
-    console.log("Event updated successfully");
-  
-      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
-  
+
+      console.log("Event updated successfully");
+
+      mutate(
+        `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
+        undefined,
+        { revalidate: true }
+      );
     } catch (err) {
-      console.error("Error updating event:", err.response ? err.response.data : err.message);
+      console.error(
+        "Error updating event:",
+        err.response ? err.response.data : err.message
+      );
     }
   };
-  
+
   const handleDeleteEvent = async (eventId) => {
     try {
       await axios.delete(
         `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`
       );
-      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+      mutate(
+        `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
+        undefined,
+        { revalidate: true }
+      );
     } catch (err) {
-      console.error("Error deleting event:", err.response ? err.response.data : err.message);
+      console.error(
+        "Error deleting event:",
+        err.response ? err.response.data : err.message
+      );
     }
   };
 
@@ -89,7 +112,7 @@ const useCalendar = (roomId) => {
     handleAddEvent,
     handleUpdateEvent,
     handleDeleteEvent,
-    loading: !data && !error && isValidating,
+    loading: isValidating,
   };
 };
 

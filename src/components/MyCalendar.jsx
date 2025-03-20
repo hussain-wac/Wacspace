@@ -1,5 +1,4 @@
-// MyCalendar.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -51,18 +50,17 @@ const MyCalendar = ({ roomId }) => {
 
   const eventStyleGetter = (event) => {
     const isPastEvent = moment(event.end).isBefore(moment());
-
     return {
       style: {
         backgroundColor: isPastEvent
           ? isDarkMode
-            ? "#4A4A4A" 
-            : "#6B7280" 
+            ? "#4A4A4A"
+            : "#6B7280"
           : event.color || (isDarkMode ? "#3B82F6" : "#93C5FD"),
         color: isPastEvent ? (isDarkMode ? "#E5E7EB" : "#1F2937") : "#fff",
         borderRadius: "4px",
         border: "none",
-        opacity: isPastEvent ? 0.6 : 1, 
+        opacity: isPastEvent ? 0.6 : 1,
         padding: "4px 8px",
         fontWeight: "500",
       },
@@ -79,7 +77,7 @@ const MyCalendar = ({ roomId }) => {
         style: {
           backgroundColor: isDarkMode ? "#2C2C2C" : "#EFF6FF",
           borderRadius: "4px",
-          cursor: "pointer", 
+          cursor: "pointer",
         },
         className: "today-cell",
         onClick: () => onView("day"),
@@ -107,6 +105,13 @@ const MyCalendar = ({ roomId }) => {
     "--today-bg-color": isDarkMode ? "#2C2C2C" : "#EFF6FF",
     "--today-text-color": isDarkMode ? "#FFFFFF" : "#1F2937",
   });
+
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+
+  const isDisplayedDayToday = moment(currentCalendarDate).isSame(moment(), "day");
+  const minTime = view === "day" && isDisplayedDayToday ? new Date() : dayStart;
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -157,45 +162,26 @@ const MyCalendar = ({ roomId }) => {
         </React.Fragment>
       </AnimatePresence>
 
-      {loading ? (
+      <motion.div
+        className="h-full rounded-lg overflow-hidden relative"
+        style={injectCalendarStyles()}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <motion.div
-          className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center z-50 bg-white bg-opacity-70 dark:bg-[#1A1A1A] dark:bg-opacity-70"
-          variants={loaderVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <div className="flex flex-col items-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <Loader2 className="h-8 w-8 text-primary" />
-            </motion.div>
-            <motion.span
-              className="mt-2 text-sm text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              Loading events...
-            </motion.span>
-          </div>
-        </motion.div>
-      ) : (
-        <motion.div
-          className="h-full rounded-lg overflow-hidden"
-          style={injectCalendarStyles()}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          className="h-full"
+          animate={{ filter: loading ? "blur(4px)" : "blur(0px)" }}
+          transition={{ duration: 0.3 }}
         >
           <Calendar
             localizer={localizer}
             events={events}
             views={["month", "week", "day", "agenda"]}
             view={view}
-            defaultView="day" 
+            defaultView="day"
             onView={onView}
+            onNavigate={(date) => setCurrentCalendarDate(date)}
             startAccessor="start"
             endAccessor="end"
             className="h-full"
@@ -204,10 +190,36 @@ const MyCalendar = ({ roomId }) => {
             selectable
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
-            min={new Date()}
+            min={minTime}
           />
         </motion.div>
-      )}
+
+        {loading && (
+          <motion.div
+            className="absolute inset-0 flex justify-center items-center z-50"
+            variants={loaderVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="flex flex-col items-center py-4 bg-gray-100 dark:bg-gray-800 bg-opacity-90 rounded-lg p-4">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="h-8 w-8 text-primary" />
+              </motion.div>
+              <motion.span
+                className="mt-2 text-sm text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                Loading events...
+              </motion.span>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </motion.div>
   );
 };
