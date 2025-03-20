@@ -1,4 +1,3 @@
-// MyCalendar.jsx
 import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
@@ -8,19 +7,45 @@ import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDarkMode } from "../hooks/useDarkMode";
 import { EventDetailsDialog } from "./EventDetailsDialog";
-import { EventFormDialog } from "./EventFormDialog";
+import { AddEventDialog } from "./AddEventDialog";
+import EditEventDialog from "./EditEventDialog";
 import "../styles/calendarStyles.css";
 
 const localizer = momentLocalizer(moment);
 
 const MyCalendar = ({ roomId }) => {
-  const { view, events, onView, handleAddEvent, handleUpdateEvent, loading } = useCalendar(roomId);
-  const [openFormDialog, setOpenFormDialog] = useState(false);
-  const [formInitialData, setFormInitialData] = useState(null);
-  const [onFormSubmit, setOnFormSubmit] = useState(null);
+  const {
+    view,
+    events,
+    onView,
+    handleAddEvent,
+    handleUpdateEvent,
+    handleDeleteEvent,
+    loading,
+  } = useCalendar(roomId);
+  const [openAddEvent, setOpenAddEvent] = useState(false);
   const [openEventDetails, setOpenEventDetails] = useState(false);
+  const [openEditEvent, setOpenEditEvent] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const isDarkMode = useDarkMode();
+
+  console.log(events);
+
+  const closeAddEventModal = () => {
+    setOpenAddEvent(false);
+    setSelectedSlot(null);
+  };
+
+  const closeEventDetailsModal = () => {
+    setOpenEventDetails(false);
+    setSelectedEvent(null);
+  };
+
+  const handleEventSubmit = async (eventData) => {
+    await handleAddEvent({ ...eventData, roomId });
+    closeAddEventModal();
+  };
 
   const handleSelectSlot = (slotInfo) => {
     const now = new Date();
@@ -28,9 +53,8 @@ const MyCalendar = ({ roomId }) => {
       alert("You cannot add events in the past!");
       return;
     }
-    setFormInitialData({ start: slotInfo.start, end: slotInfo.end, roomId });
-    setOnFormSubmit(() => handleAddEvent);
-    setOpenFormDialog(true);
+    setSelectedSlot(slotInfo);
+    setOpenAddEvent(true);
   };
 
   const handleSelectEvent = (event) => {
@@ -39,16 +63,14 @@ const MyCalendar = ({ roomId }) => {
   };
 
   const handleEditEvent = (event) => {
-    setFormInitialData({
-      _id: event._id,
-      title: event.title,
-      start: event.start,
-      end: event.end,
-      roomId: event.roomId,
-    });
-    setOnFormSubmit(() => (updatedEvent) => handleUpdateEvent(event._id, updatedEvent));
-    setOpenFormDialog(true);
-    setOpenEventDetails(false);
+    setSelectedEvent(event);
+    setOpenEditEvent(true);
+  };
+
+  const handleUpdateEventSubmit = async (eventId, updatedEvent) => {
+    await handleUpdateEvent(eventId, updatedEvent);
+    setOpenEditEvent(false);
+    setSelectedEvent(null);
   };
 
   const eventStyleGetter = (event) => ({
@@ -108,22 +130,31 @@ const MyCalendar = ({ roomId }) => {
       animate="visible"
     >
       <AnimatePresence>
-        {openFormDialog && (
-          <EventFormDialog
-            open={openFormDialog}
-            onOpenChange={setOpenFormDialog}
-            initialData={formInitialData}
-            onSubmit={onFormSubmit}
+        <React.Fragment key="add-event-dialog">
+          <AddEventDialog
+            open={openAddEvent}
+            onOpenChange={setOpenAddEvent}
+            selectedSlot={selectedSlot}
+            onAddEvent={handleEventSubmit}
           />
-        )}
-        {openEventDetails && (
+        </React.Fragment>
+        <React.Fragment key="event-details-dialog">
           <EventDetailsDialog
             open={openEventDetails}
             onOpenChange={setOpenEventDetails}
             selectedEvent={selectedEvent}
             onEdit={handleEditEvent}
+            onDelete={handleDeleteEvent}
           />
-        )}
+        </React.Fragment>
+        <React.Fragment key="edit-event-dialog">
+          <EditEventDialog
+            open={openEditEvent}
+            onOpenChange={setOpenEditEvent}
+            selectedEvent={selectedEvent}
+            onEdit={handleUpdateEventSubmit}
+          />
+        </React.Fragment>
       </AnimatePresence>
 
       {loading ? (

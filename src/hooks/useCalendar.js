@@ -14,7 +14,7 @@ const fetcher = async (url) => {
   }
 };
 
-const useCalendar = (roomId) => {  // Changed to accept roomId as parameter
+const useCalendar = (roomId) => {
   const [searchParams] = useSearchParams();
   const effectiveRoomId = roomId || searchParams.get("roomId");
   const { data, error, isValidating } = useSWR(
@@ -60,6 +60,17 @@ const useCalendar = (roomId) => {  // Changed to accept roomId as parameter
     }
   };
 
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`
+      );
+      mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+    } catch (err) {
+      console.error("Error deleting event:", err.response ? err.response.data : err.message);
+    }
+  };
+
   return {
     error,
     view,
@@ -67,6 +78,7 @@ const useCalendar = (roomId) => {  // Changed to accept roomId as parameter
     onView,
     handleAddEvent,
     handleUpdateEvent,
+    handleDeleteEvent,
     loading: !data && !error && isValidating,
   };
 };
