@@ -1,7 +1,7 @@
 import React from 'react'
 import RoomSelect from './Home/RoomSelect'
 import Navbar from './Layouts/Navbar'
-import NotificationComponent from './NotificationComponent'
+import NotificationComponent from './Layouts/NotificationComponent'
 
 
 function Home() {

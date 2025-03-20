@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
-import NotificationComponent from "../NotificationComponent";
+import NotificationComponent from "./NotificationComponent";
 
 function Navbar() {
   const [user, setUser] = useAtom(globalState);
