@@ -1,17 +1,13 @@
-import React from 'react'
-import RoomSelect from './Home/RoomSelect'
-import Navbar from './Layouts/Navbar'
-import NotificationComponent from './Layouts/NotificationComponent'
-
+// Home.jsx
+import React from 'react';
+import RoomSelect from './Home/RoomSelect';
 
 function Home() {
   return (
-    <div className=' '>
-        <Navbar/>
-{/* <NotificationComponent/>         */}
-        <RoomSelect/>
+    <div>
+      <RoomSelect />
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;

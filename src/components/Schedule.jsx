@@ -3,7 +3,6 @@ import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import Navbar from './Layouts/Navbar';
 import MyCalendar from './MyCalendar';
 import Instructions from './Instructions';
 
@@ -14,7 +13,6 @@ function Schedule() {
 
   return (
     <div>
-      <Navbar />
       <div className="p-4  mx-auto">
         <Button 
           variant="outline" 
