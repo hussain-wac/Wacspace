@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// MyCalendar.jsx
+import React from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -10,6 +11,7 @@ import { EventDetailsDialog } from "./EventDetailsDialog";
 import { AddEventDialog } from "./AddEventDialog";
 import EditEventDialog from "./EditEventDialog";
 import "../styles/calendarStyles.css";
+import useEventHandle from "../hooks/useEventHandle";
 
 const localizer = momentLocalizer(moment);
 
@@ -23,49 +25,25 @@ const MyCalendar = ({ roomId }) => {
     handleDeleteEvent,
     loading,
   } = useCalendar(roomId);
-  const [openAddEvent, setOpenAddEvent] = useState(false);
-  const [openEventDetails, setOpenEventDetails] = useState(false);
-  const [openEditEvent, setOpenEditEvent] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const isDarkMode = useDarkMode();
 
-  console.log(events);
+  // Pass the events into your custom event handler hook.
+  const {
+    handleEditEvent,
+    selectedEvent,
+    setOpenEditEvent,
+    openEditEvent,
+    setSelectedEvent,
+    openAddEvent,
+    setOpenAddEvent,
+    openEventDetails,
+    setOpenEventDetails,
+    selectedSlot,
+    handleSelectSlot,
+    handleSelectEvent,
+    handleEventSubmit,
+  } = useEventHandle(events, handleAddEvent);
 
-  const closeAddEventModal = () => {
-    setOpenAddEvent(false);
-    setSelectedSlot(null);
-  };
-
-  const closeEventDetailsModal = () => {
-    setOpenEventDetails(false);
-    setSelectedEvent(null);
-  };
-
-  const handleEventSubmit = async (eventData) => {
-    await handleAddEvent({ ...eventData, roomId });
-    closeAddEventModal();
-  };
-
-  const handleSelectSlot = (slotInfo) => {
-    const now = new Date();
-    if (slotInfo.start < now) {
-      alert("You cannot add events in the past!");
-      return;
-    }
-    setSelectedSlot(slotInfo);
-    setOpenAddEvent(true);
-  };
-
-  const handleSelectEvent = (event) => {
-    setSelectedEvent(event);
-    setOpenEventDetails(true);
-  };
-
-  const handleEditEvent = (event) => {
-    setSelectedEvent(event);
-    setOpenEditEvent(true);
-  };
+  const isDarkMode = useDarkMode(handleAddEvent);
 
   const handleUpdateEventSubmit = async (eventId, updatedEvent) => {
     await handleUpdateEvent(eventId, updatedEvent);
@@ -114,7 +92,11 @@ const MyCalendar = ({ roomId }) => {
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
   };
 
   const loaderVariants = {
