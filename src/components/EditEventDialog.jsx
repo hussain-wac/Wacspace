@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -35,39 +35,49 @@ const eventSchema = z
     path: ["end"],
   });
 
-const formatDateTimeLocal = (date) => {
-  const d = new Date(date);
-  const localDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000); 
-  return localDateTime.toISOString().slice(0, 16);
-};
+  const formatDateTimeLocal = (date) => {
+    const d = new Date(date);
+    const localDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000); // Convert to local time
+    return localDateTime.toISOString().slice(0, 16);
+  };
+
 const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
+
+  
+  console.log(selectedEvent)
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      title: selectedEvent?.title || "",
-      start: selectedEvent?.start
-        ? formatDateTimeLocal(selectedEvent.start)
-        : "",
-      end: selectedEvent?.end ? formatDateTimeLocal(selectedEvent.end) : "",
-    },
-    resetOptions: {
-      keepDirtyValues: false,
+      title: selectedEvent?.title,
+      start: selectedEvent?.start,
+      end: selectedEvent?.end,
     },
   });
 
-  const { handleSubmit } = form;
+  const { handleSubmit, reset } = form;
+
+  useEffect(() => {
+    if (selectedEvent) {
+      reset({
+        title: selectedEvent.title || "",
+        start: selectedEvent.start ? formatDateTimeLocal(selectedEvent.start) : "",
+        end: selectedEvent.end ? formatDateTimeLocal(selectedEvent.end) : "",
+      });
+    }
+  }, [selectedEvent, reset]);
+  
 
   const onSubmit = (data) => {
     const updatedEvent = {
       ...selectedEvent,
       title: data.title,
-      start: new Date(data.start),
+      start: new Date(data.start), // Convert back to Date object
       end: new Date(data.end),
     };
     onEdit(selectedEvent._id, updatedEvent);
     onOpenChange(false);
   };
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
