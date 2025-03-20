@@ -52,18 +52,17 @@ const useCalendar = (roomId) => {
         title: updatedEvent.title,
         start: new Date(updatedEvent.start).toISOString(),
         end: new Date(updatedEvent.end).toISOString(),
-        roomId: effectiveRoomId, // Use effectiveRoomId to ensure the correct room is used
+        roomId: effectiveRoomId, 
       };
   
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`, // Ensure correct URL formatting
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`, 
         formattedEvent,
         { headers: { "Content-Type": "application/json" } }
       );
   
-      console.log("Event updated successfully");
+    console.log("Event updated successfully");
   
-      // Revalidate SWR cache after update
       mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
   
     } catch (err) {
@@ -71,8 +70,6 @@ const useCalendar = (roomId) => {
     }
   };
   
-  
-
   const handleDeleteEvent = async (eventId) => {
     try {
       await axios.delete(

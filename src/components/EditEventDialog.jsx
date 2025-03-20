@@ -37,23 +37,22 @@ const eventSchema = z
 
 const formatDateTimeLocal = (date) => {
   const d = new Date(date);
-  return d.toISOString().slice(0, 16);
+  const localDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000); 
+  return localDateTime.toISOString().slice(0, 16);
 };
-
 const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
-  
-  // console.log("Selected event",selectedEvent._id)
-
-  const defaultValues = {
-    title: selectedEvent?.title ? selectedEvent.title : "",
-    start: selectedEvent?.start || "",
-    end: selectedEvent?.end || "",
-  };
-  const formKey = selectedEvent ? selectedEvent.id : "new";
-
   const form = useForm({
     resolver: zodResolver(eventSchema),
-    defaultValues,
+    defaultValues: {
+      title: selectedEvent?.title || "",
+      start: selectedEvent?.start
+        ? formatDateTimeLocal(selectedEvent.start)
+        : "",
+      end: selectedEvent?.end ? formatDateTimeLocal(selectedEvent.end) : "",
+    },
+    resetOptions: {
+      keepDirtyValues: false,
+    },
   });
 
   const { handleSubmit } = form;
@@ -65,7 +64,7 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
       start: new Date(data.start),
       end: new Date(data.end),
     };
-    onEdit(selectedEvent._id,updatedEvent);
+    onEdit(selectedEvent._id, updatedEvent);
     onOpenChange(false);
   };
 
@@ -75,12 +74,8 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            key={formKey}
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
+        <Form {...form} key={selectedEvent?._id || "new-event"}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="title"
@@ -118,11 +113,7 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
                 <FormItem>
                   <FormLabel>End Time</FormLabel>
                   <FormControl>
-                    <Input
-                      type="datetime-local"
-                      min={defaultValues.start}
-                      {...field}
-                    />
+                    <Input type="datetime-local" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

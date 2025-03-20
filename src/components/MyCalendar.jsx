@@ -79,10 +79,10 @@ const MyCalendar = ({ roomId }) => {
         style: {
           backgroundColor: isDarkMode ? "#2C2C2C" : "#EFF6FF",
           borderRadius: "4px",
-          cursor: "pointer", // Indicate clickability
+          cursor: "pointer", 
         },
         className: "today-cell",
-        onClick: () => onView("day"), // Move to day view when clicked
+        onClick: () => onView("day"),
       };
     } else if (isPast) {
       return {
@@ -194,7 +194,7 @@ const MyCalendar = ({ roomId }) => {
             events={events}
             views={["month", "week", "day", "agenda"]}
             view={view}
-            defaultView="day" // Changed from "week" to "day"
+            defaultView="day" 
             onView={onView}
             startAccessor="start"
             endAccessor="end"
