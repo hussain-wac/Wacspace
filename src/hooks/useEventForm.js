@@ -20,6 +20,10 @@ const eventSchema = z
   .refine((data) => dayjs(data.end).isAfter(dayjs(data.start)), {
     message: "End time must be after start time",
     path: ["end"],
+  })
+  .refine((data) => dayjs(data.start).isSame(dayjs(data.end), "day"), {
+    message: "Start and end times must be on the same day",
+    path: ["end"],
   });
 
 const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
@@ -27,24 +31,30 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
- const form = useForm({
-  resolver: zodResolver(eventSchema),
-  defaultValues: {
-    title: "Team meeting",
-    organizer: user.name,
-    project: "",
-    task: "",
-    start: initialStart 
-      ? moment(initialStart).format("YYYY-MM-DDTHH:mm") 
-      : moment().set({ hour: 9, minute: 0, second: 0 }).format("YYYY-MM-DDTHH:mm"),
-    end: initialEnd 
-      ? moment(initialEnd).format("YYYY-MM-DDTHH:mm") 
-      : moment().set({ hour: 10, minute: 0, second: 0 }).format("YYYY-MM-DDTHH:mm"), // Default end at 10 AM
-    roomId: roomId,
-    email: user.email,
-  },
-});
+  // Set initial start time to current time + 1 hour, and end time to start time + 1 hour
+  const now = moment();
+  const defaultStart = now.add(1, "hour").format("YYYY-MM-DDTHH:mm");
+  const defaultEnd = moment(defaultStart, "YYYY-MM-DDTHH:mm")
+    .add(1, "hour")
+    .format("YYYY-MM-DDTHH:mm");
 
+  const form = useForm({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      title: "Team meeting",
+      organizer: user.name,
+      project: "",
+      task: "",
+      start: initialStart
+        ? moment(initialStart).format("YYYY-MM-DDTHH:mm")
+        : defaultStart,
+      end: initialEnd
+        ? moment(initialEnd).format("YYYY-MM-DDTHH:mm")
+        : defaultEnd,
+      roomId: roomId,
+      email: user.email,
+    },
+  });
 
   const onSubmit = async (data) => {
     setLoading(true);
