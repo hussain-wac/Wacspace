@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,56 +8,64 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
 
-// Helper function defined before use
+const eventSchema = z
+  .object({
+    title: z.string().min(1, { message: "Title is required" }),
+    start: z.string().min(1, { message: "Start time is required" }),
+    end: z.string().min(1, { message: "End time is required" }),
+  })
+  .refine((data) => new Date(data.start) > new Date(), {
+    message: "Start time must be in the future",
+    path: ["start"],
+  })
+  .refine((data) => new Date(data.end) > new Date(data.start), {
+    message: "End time must be after start time",
+    path: ["end"],
+  });
+
 const formatDateTimeLocal = (date) => {
   const d = new Date(date);
-  return d.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+  return d.toISOString().slice(0, 16);
 };
 
 const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
-  const [title, setTitle] = useState("");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
+  
+  // console.log("Selected event",selectedEvent._id)
 
-  useEffect(() => {
-    if (selectedEvent) {
-      setTitle(selectedEvent.title || "");
-      setStart(selectedEvent.start ? formatDateTimeLocal(selectedEvent.start) : "");
-      setEnd(selectedEvent.end ? formatDateTimeLocal(selectedEvent.end) : "");
-    }
-  }, [selectedEvent]);
+  const defaultValues = {
+    title: selectedEvent?.title ? selectedEvent.title : "",
+    start: selectedEvent?.start || "",
+    end: selectedEvent?.end || "",
+  };
+  const formKey = selectedEvent ? selectedEvent.id : "new";
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title || !start || !end) {
-      alert("Please fill in all fields");
-      return;
-    }
+  const form = useForm({
+    resolver: zodResolver(eventSchema),
+    defaultValues,
+  });
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const now = new Date();
+  const { handleSubmit } = form;
 
-    if (startDate < now) {
-      alert("Start time cannot be in the past");
-      return;
-    }
-
-    if (startDate >= endDate) {
-      alert("End time must be after start time");
-      return;
-    }
-
+  const onSubmit = (data) => {
     const updatedEvent = {
       ...selectedEvent,
-      title,
-      start: startDate,
-      end: endDate,
+      title: data.title,
+      start: new Date(data.start),
+      end: new Date(data.end),
     };
-
-    onEdit(selectedEvent.id, updatedEvent);
+    onEdit(selectedEvent._id,updatedEvent);
     onOpenChange(false);
   };
 
@@ -67,52 +75,71 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Event Title</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter event title"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="start">Start Time</Label>
-              <Input
-                id="start"
-                type="datetime-local"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                min={formatDateTimeLocal(new Date())} // Prevent past dates
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="end">End Time</Label>
-              <Input
-                id="end"
-                type="datetime-local"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                min={start} // Ensure end is after start
-                required
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">Save Changes</Button>
-          </DialogFooter>
-        </form>
+        <Form {...form}>
+          <form
+            key={formKey}
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter event title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="start"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Time</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="datetime-local"
+                      min={formatDateTimeLocal(new Date())}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="end"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>End Time</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="datetime-local"
+                      min={defaultValues.start}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

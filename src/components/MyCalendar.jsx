@@ -56,13 +56,13 @@ const MyCalendar = ({ roomId }) => {
       style: {
         backgroundColor: isPastEvent
           ? isDarkMode
-            ? "#4A4A4A" // Lighter gray for past events in dark mode
-            : "#6B7280" // Darker gray for past events in light mode
+            ? "#4A4A4A" 
+            : "#6B7280" 
           : event.color || (isDarkMode ? "#3B82F6" : "#93C5FD"),
         color: isPastEvent ? (isDarkMode ? "#E5E7EB" : "#1F2937") : "#fff",
         borderRadius: "4px",
         border: "none",
-        opacity: isPastEvent ? 0.6 : 1, // Reduce opacity for past events
+        opacity: isPastEvent ? 0.6 : 1, 
         padding: "4px 8px",
         fontWeight: "500",
       },

@@ -46,19 +46,32 @@ const useCalendar = (roomId) => {
       console.error("Error adding event:", err.response ? err.response.data : err.message);
     }
   };
-
   const handleUpdateEvent = async (eventId, updatedEvent) => {
     try {
+      const formattedEvent = {
+        title: updatedEvent.title,
+        start: new Date(updatedEvent.start).toISOString(),
+        end: new Date(updatedEvent.end).toISOString(),
+        roomId: effectiveRoomId, // Use effectiveRoomId to ensure the correct room is used
+      };
+  
       await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`,
-        updatedEvent,
+        `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`, // Ensure correct URL formatting
+        formattedEvent,
         { headers: { "Content-Type": "application/json" } }
       );
+  
+      console.log("Event updated successfully");
+  
+      // Revalidate SWR cache after update
       mutate(`${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`, undefined, { revalidate: true });
+  
     } catch (err) {
       console.error("Error updating event:", err.response ? err.response.data : err.message);
     }
   };
+  
+  
 
   const handleDeleteEvent = async (eventId) => {
     try {
