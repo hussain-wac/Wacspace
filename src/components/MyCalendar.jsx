@@ -129,7 +129,7 @@ const MyCalendar = ({ roomId }) => {
 
   return (
     <motion.div
-      className="h-[90vh] p-8 bg-white dark:bg-[#1A1A1A] transition-colors duration-200"
+      className="h-[90vh] p-8 bg-white dark:bg-[#1A1A1A] "
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -171,7 +171,7 @@ const MyCalendar = ({ roomId }) => {
       >
         <motion.div
           className="h-full"
-          animate={{ filter: loading ? "blur(4px)" : "blur(0px)" }}
+          animate={{ filter: loading ? "blur(0px)" : "blur(0px)" }}
           transition={{ duration: 0.3 }}
         >
           <Calendar
