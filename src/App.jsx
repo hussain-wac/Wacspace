@@ -9,11 +9,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Home from "./components/Home";
 import Schedule from "./components/Schedule";
 import MainLayout from "./components/MainLayout";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const user = useAtomValue(globalState);
   return (
     <Provider>
+      <Toaster />
       <Router>
         <Routes>
           <Route path="/" element={user ? <Navigate to="/home" /> : <Login />} />
