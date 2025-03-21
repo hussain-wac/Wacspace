@@ -94,6 +94,10 @@ const MyCalendar = ({ roomId }) => {
     return {};
   };
 
+  const filteredEvents = view === "day" 
+  ? events.filter(event => !moment(event.end).isBefore(moment()))
+  : events;
+
   const injectCalendarStyles = () => ({
     "--border-color": isDarkMode ? "#3A3A3A" : "#E5E7EB",
     "--text-color": isDarkMode ? "#F9FAFB" : "#1F2937",
@@ -176,7 +180,7 @@ const MyCalendar = ({ roomId }) => {
         >
           <Calendar
             localizer={localizer}
-            events={events}
+            events={filteredEvents}
             views={["month", "week", "day", "agenda"]}
             view={view}
             defaultView="day"
