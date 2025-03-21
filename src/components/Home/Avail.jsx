@@ -1,20 +1,25 @@
 import React from "react";
 
 function Avail({ availability }) {
+  const availabilityColor =
+    availability.availabilityPercentage >= 50
+      ? "bg-green-500"
+      : availability.availabilityPercentage >= 20
+      ? "bg-yellow-500"
+      : "bg-red-500";
+
   return (
-    <div className="w-full p-4 bg-neutral-50 dark:bg-neutral-700 rounded-lg text-neutral-700 dark:text-neutral-200 flex flex-col items-center">
-      {/* Availability Traffic Light */}
-      <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-        Availability
-      </p>
-      <div className="flex flex-row items-center space-x-2">
-        <div className={`w-6 h-6 rounded-full bg-red-500 ${availability.availabilityPercentage < 20 ? "opacity-100" : "opacity-30"}`}></div>
-        <div className={`w-6 h-6 rounded-full bg-yellow-500 ${availability.availabilityPercentage >= 20 && availability.availabilityPercentage < 30 ? "opacity-100" : "opacity-30"}`}></div>
-        <div className={`w-6 h-6 rounded-full bg-green-500 ${availability.availabilityPercentage >= 30 ? "opacity-100" : "opacity-30"}`}></div>
+    <div className="w-full">
+      <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+        <span>Availability</span>
+        <span>{availability.availabilityPercentage}%</span>
       </div>
-      <p className="mt-2 text-lg font-semibold">
-        {availability.availabilityPercentage}%
-      </p>
+      <div className="w-full bg-neutral-200 dark:bg-neutral-600 h-2 rounded">
+        <div
+          className={`h-2 rounded ${availabilityColor}`}
+          style={{ width: `${availability.availabilityPercentage}%` }}
+        ></div>
+      </div>
     </div>
   );
 }
