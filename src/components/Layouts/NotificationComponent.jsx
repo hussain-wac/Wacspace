@@ -19,6 +19,7 @@ const NotificationComponent = () => {
     deleteNotification,
   } = useNotification();
 
+  console.log(notifications);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -69,47 +70,50 @@ const NotificationComponent = () => {
           </div>
         </div>
         <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-  {Array.isArray(notifications) && notifications.length > 0 ? (
-    notifications.map((notif) => (
-      <DropdownMenuItem
-        key={notif.id}
-        className={`flex justify-between items-center p-4 ${
-          !notif.isRead
-            ? "bg-neutral-50 dark:bg-neutral-800"
-            : "bg-white dark:bg-neutral-900"
-        } hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer focus:bg-neutral-100 dark:focus:bg-neutral-800`}
-      >
-        <div className="flex flex-col">
-          <span
-            className={`text-sm ${
-              !notif.isRead
-                ? "font-medium text-neutral-900 dark:text-neutral-100"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`}
-          >
-            {typeof notif.message === "string" ? notif.message : JSON.stringify(notif.message)}
-          </span>
-          <span className="text-xs mt-1 text-neutral-500 dark:text-neutral-500">
-            {notif.start ? new Date(notif.start).toLocaleTimeString() : "N/A"}
-          </span>
+          {Array.isArray(notifications) && notifications.length > 0 ? (
+            notifications.map((notif) => (
+              <DropdownMenuItem
+                key={notif.id}
+                className={`flex justify-between items-center p-4 ${
+                  !notif.isRead
+                    ? "bg-neutral-50 dark:bg-neutral-800"
+                    : "bg-white dark:bg-neutral-900"
+                } hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer focus:bg-neutral-100 dark:focus:bg-neutral-800`}
+              >
+                <div className="flex flex-col">
+                  <span
+                    className={`text-sm ${
+                      !notif.isRead
+                        ? "font-medium text-neutral-900 dark:text-neutral-100"
+                        : "text-neutral-600 dark:text-neutral-400"
+                    }`}
+                  >
+                    {typeof notif.message === "string"
+                      ? notif.message
+                      : JSON.stringify(notif.message)}
+                  </span>
+                  <span className="text-xs mt-1 text-neutral-500 dark:text-neutral-500">
+                    {/* Changed from notif.start to notif.id since your data uses timestamps as IDs */}
+                    {notif.id ? new Date(notif.id).toLocaleTimeString() : "N/A"}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+                  onClick={() => deleteNotification(notif.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No new notifications</p>
+            </div>
+          )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
-          onClick={() => deleteNotification(notif.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </DropdownMenuItem>
-    ))
-  ) : (
-    <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
-      <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-      <p className="text-sm">No new notifications</p>
-    </div>
-  )}
-</div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

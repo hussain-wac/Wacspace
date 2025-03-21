@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { io } from "socket.io-client";
-import {  useAtom,useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   globalState,
   notificationsAtom,
@@ -20,10 +20,11 @@ const useNotification = () => {
     if (!userEmail) return;
 
     socket.emit("register", userEmail);
-    // toast(`Registered ${userEmail} with socket`);
+    console.log(`Registered ${userEmail} with socket`);
 
     socket.on("meetingNotification", (data) => {
-      toast(data);
+      console.log("Received notification:", data);
+      toast(data.message);
 
       const newNotification = {
         message: data.message,
