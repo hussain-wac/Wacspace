@@ -10,11 +10,17 @@ import Home from "./components/Home";
 import Schedule from "./components/Schedule";
 import MainLayout from "./components/MainLayout";
 import { Toaster } from "@/components/ui/sonner";
+import useFavicon from "./useFavicon";
 
 function App() {
   const user = useAtomValue(globalState);
+  useFavicon();
   return (
     <Provider>
+       <head>
+       <title>WACspace</title>
+        <link id="favicon" rel="icon" type="image/png" href="/favicon-light.png" />
+      </head>
       <Toaster />
       <Router>
         <Routes>
