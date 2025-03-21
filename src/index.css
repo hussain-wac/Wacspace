@@ -119,3 +119,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+.toaster [data-sonner-toast][data-styled=true] [data-description]{
+   color: inherit!important;
+}
