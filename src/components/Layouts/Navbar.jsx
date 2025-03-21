@@ -28,14 +28,13 @@ function Navbar() {
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-backdrop-blur:bg-background/60">
-
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
         <div className="flex items-center gap-2">
-          <span className="font-bold text-xl md:text-2xl">WACspace</span>
+          <span className="font-bold text-xl md:text-2xl">
+            WAC<span className="text-neutral-500">space</span>
+          </span>
         </div>
 
-        {/* Right side items container */}
         <div className="flex items-center gap-2">
           {/* Mobile Menu */}
           <div className="md:hidden mr-2">
@@ -160,7 +159,7 @@ function Navbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        <NotificationComponent/>
+          <NotificationComponent />
         </div>
       </div>
     </nav>
