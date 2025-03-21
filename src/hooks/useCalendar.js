@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
@@ -48,11 +49,20 @@ const useCalendar = (roomId) => {
         undefined,
         { revalidate: true }
       );
+
+      toast.success("Meeting created", {
+        description: `${new Date(newEvent.start).toLocaleString()}`,
+        action: {
+          label: "Undo",
+          onClick: () => console.log("Undo meeting creation"),
+        },
+      });
     } catch (err) {
       console.error(
         "Error adding event:",
         err.response ? err.response.data : err.message
       );
+      toast.error("Failed to create meeting.");
     }
   };
 
@@ -64,27 +74,37 @@ const useCalendar = (roomId) => {
         end: new Date(updatedEvent.end).toISOString(),
         roomId: effectiveRoomId,
       };
-
+  
       await axios.put(
         `${import.meta.env.VITE_BASE_URL}/api/meetings/${eventId}`,
         formattedEvent,
         { headers: { "Content-Type": "application/json" } }
       );
-
-      console.log("Event updated successfully");
-
+  
       mutate(
         `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${effectiveRoomId}`,
         undefined,
         { revalidate: true }
       );
+  
+      toast.success("Meeting updated successfully!", {
+        description: `New time: ${new Date(updatedEvent.start).toLocaleString()}`,
+      });
     } catch (err) {
-      console.error(
-        "Error updating event:",
-        err.response ? err.response.data : err.message
-      );
+      if (err.response && err.response.status === 409) {
+        toast.error("Meeting time conflict!", {
+          description: "This meeting overlaps with another scheduled meeting.",
+        });
+      } else {
+        console.error(
+          "Error updating event:",
+          err.response ? err.response.data : err.message
+        );
+        toast.error("Failed to update meeting.");
+      }
     }
   };
+  
 
   const handleDeleteEvent = async (eventId) => {
     try {
@@ -96,11 +116,14 @@ const useCalendar = (roomId) => {
         undefined,
         { revalidate: true }
       );
+
+      toast.success("Meeting deleted successfully!");
     } catch (err) {
       console.error(
         "Error deleting event:",
         err.response ? err.response.data : err.message
       );
+      toast.error("Failed to delete meeting.");
     }
   };
 
