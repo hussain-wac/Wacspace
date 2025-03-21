@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-import { Bell, Check, Trash2 } from "lucide-react"; // Added Trash2 icon
+import React from "react";
+import { Bell, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,51 +8,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { useAtomValue } from "jotai";
-import { globalState } from "../../jotai/globalState";
+import useNotification from "../../hooks/useNotification";
 
 const NotificationComponent = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const user = useAtomValue(globalState);
-
-  useEffect(() => {
-    const socket = io(`${import.meta.env.VITE_BASE_URL}`);
-    const userEmail = user.email;
-
-    socket.emit("register", userEmail);
-    console.log(`Registered ${userEmail} with socket`);
-
-    socket.on("meetingNotification", (data) => {
-      console.log("Received notification:", data);
-      setNotifications((prev) => [
-        ...prev,
-        {
-          message: data.message,
-          id: Date.now(),
-          isRead: false,
-        },
-      ]);
-      setUnreadCount((prev) => prev + 1);
-    });
-
-    return () => socket.disconnect();
-  }, []);
-
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
-    setUnreadCount(0);
-  };
-
-  const deleteAllNotifications = () => {
-    setNotifications([]);
-    setUnreadCount(0);
-  };
-
-  const deleteNotification = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-    setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
-  };
+  const {
+    notifications,
+    unreadCount,
+    markAllRead,
+    deleteAllNotifications,
+    deleteNotification,
+  } = useNotification();
 
   return (
     <DropdownMenu>
@@ -99,7 +63,6 @@ const NotificationComponent = () => {
                   onClick={deleteAllNotifications}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
-                  {/* Clear All */}
                 </Button>
               )}
             </div>
