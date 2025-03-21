@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import { Bell, Check } from "lucide-react"; // Direct Lucide import
+import { Bell, Check, Trash2 } from "lucide-react"; // Added Trash2 icon
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,10 +41,18 @@ const NotificationComponent = () => {
   }, []);
 
   const markAllRead = () => {
-    setNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
+    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
     setUnreadCount(0);
+  };
+
+  const deleteAllNotifications = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
+  const deleteNotification = (id) => {
+    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
   return (
@@ -71,17 +79,30 @@ const NotificationComponent = () => {
             <span className="font-semibold text-lg text-neutral-900 dark:text-neutral-100">
               Notifications
             </span>
-            {notifications.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800"
-                onClick={markAllRead}
-              >
-                <Check className="h-4 w-4 mr-1" />
-                Mark all read
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800"
+                  onClick={markAllRead}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Mark all read
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-800 hover:bg-red-100 dark:text-red-400 dark:hover:text-red-200 dark:hover:bg-red-800"
+                  onClick={deleteAllNotifications}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -89,24 +110,34 @@ const NotificationComponent = () => {
             notifications.map((notif) => (
               <DropdownMenuItem
                 key={notif.id}
-                className={`flex flex-col items-start p-4 ${
+                className={`flex justify-between items-center p-4 ${
                   !notif.isRead
                     ? "bg-neutral-50 dark:bg-neutral-800"
                     : "bg-white dark:bg-neutral-900"
                 } hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer focus:bg-neutral-100 dark:focus:bg-neutral-800`}
               >
-                <span
-                  className={`text-sm ${
-                    !notif.isRead
-                      ? "font-medium text-neutral-900 dark:text-neutral-100"
-                      : "text-neutral-600 dark:text-neutral-400"
-                  }`}
+                <div className="flex flex-col">
+                  <span
+                    className={`text-sm ${
+                      !notif.isRead
+                        ? "font-medium text-neutral-900 dark:text-neutral-100"
+                        : "text-neutral-600 dark:text-neutral-400"
+                    }`}
+                  >
+                    {notif.message}
+                  </span>
+                  <span className="text-xs mt-1 text-neutral-500 dark:text-neutral-500">
+                    {new Date(notif.id).toLocaleTimeString()}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+                  onClick={() => deleteNotification(notif.id)}
                 >
-                  {notif.message}
-                </span>
-                <span className="text-xs mt-1 text-neutral-500 dark:text-neutral-500">
-                  {new Date(notif.id).toLocaleTimeString()}
-                </span>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </DropdownMenuItem>
             ))
           ) : (
