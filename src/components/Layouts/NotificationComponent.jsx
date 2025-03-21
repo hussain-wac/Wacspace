@@ -99,7 +99,7 @@ const NotificationComponent = () => {
                   onClick={deleteAllNotifications}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Clear All
+                  {/* Clear All */}
                 </Button>
               )}
             </div>
