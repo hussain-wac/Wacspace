@@ -113,3 +113,7 @@
     background-color: var(--bg-color);
   }
   
+  .rbc-toolbar .rbc-btn-group button:hover{
+    background: var(--text-color);
+    color: var(--bg-color);
+  }
