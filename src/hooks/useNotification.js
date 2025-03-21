@@ -6,6 +6,7 @@ import {
   notificationsAtom,
   unreadCountAtom,
 } from "../jotai/globalState";
+import { toast } from "sonner";
 
 const useNotification = () => {
   const [notifications, setNotifications] = useAtom(notificationsAtom);
@@ -19,10 +20,10 @@ const useNotification = () => {
     if (!userEmail) return;
 
     socket.emit("register", userEmail);
-    console.log(`Registered ${userEmail} with socket`);
+    // toast(`Registered ${userEmail} with socket`);
 
     socket.on("meetingNotification", (data) => {
-      console.log("Received notification:", data);
+      toast(data);
 
       const newNotification = {
         message: data.message,
