@@ -26,12 +26,13 @@ const meetingTypeOptions = [
   { value: "other", label: "Other" },
 ];
 
-const EventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
+const EventForm = ({ initialStart, initialEnd, onClose, roomId ,  isMonthView}) => {
   const { form, loading, onSubmit } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
     roomId,
+isMonthView
   });
 
   // Watch the meetingType field for conditional rendering

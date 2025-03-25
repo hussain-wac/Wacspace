@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,9 @@ import { Input } from "./ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import {
   Form,
   FormControl,
@@ -20,63 +23,70 @@ import {
   FormMessage,
 } from "./ui/form";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const eventSchema = z
   .object({
     title: z.string().min(1, { message: "Title is required" }),
     start: z.string().min(1, { message: "Start time is required" }),
     end: z.string().min(1, { message: "End time is required" }),
   })
-  .refine((data) => new Date(data.start) > new Date(), {
+  .refine((data) => dayjs(data.start).isAfter(dayjs()), {
     message: "Start time must be in the future",
     path: ["start"],
   })
-  .refine((data) => new Date(data.end) > new Date(data.start), {
+  .refine((data) => dayjs(data.end).isAfter(dayjs(data.start)), {
     message: "End time must be after start time",
     path: ["end"],
   });
 
-  const formatDateTimeLocal = (date) => {
-    const d = new Date(date);
-    const localDateTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000); // Convert to local time
-    return localDateTime.toISOString().slice(0, 16);
-  };
+// Function to format date to "YYYY-MM-DDTHH:mm" in local timezone
+const formatDateTimeLocal = (date) => {
+  if (!date) return "";
+  return dayjs(date).tz(dayjs.tz.guess()).format("YYYY-MM-DDTHH:mm");
+};
 
 const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
-
-  
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      title: selectedEvent?.title,
-      start: selectedEvent?.start,
-      end: selectedEvent?.end,
+      title: selectedEvent?.title || "",
+      start: selectedEvent?.start
+        ? formatDateTimeLocal(selectedEvent.start)
+        : "",
+      end: selectedEvent?.end ? formatDateTimeLocal(selectedEvent.end) : "",
     },
+    mode: "onChange",
   });
 
-  const { handleSubmit, reset } = form;
+  // Set values directly instead of using useEffect
+  if (selectedEvent) {
+    form.setValue("title", selectedEvent.title || "");
+    form.setValue(
+      "start",
+      selectedEvent.start ? formatDateTimeLocal(selectedEvent.start) : ""
+    );
+    form.setValue(
+      "end",
+      selectedEvent.end ? formatDateTimeLocal(selectedEvent.end) : ""
+    );
+  }
 
-  useEffect(() => {
-    if (selectedEvent) {
-      reset({
-        title: selectedEvent.title || "",
-        start: selectedEvent.start ? formatDateTimeLocal(selectedEvent.start) : "",
-        end: selectedEvent.end ? formatDateTimeLocal(selectedEvent.end) : "",
-      });
-    }
-  }, [selectedEvent, reset]);
-  
+  const { handleSubmit } = form;
 
   const onSubmit = (data) => {
     const updatedEvent = {
       ...selectedEvent,
       title: data.title,
-      start: new Date(data.start), // Convert back to Date object
-      end: new Date(data.end),
+      start: dayjs.tz(data.start, dayjs.tz.guess()).utc().toISOString(),
+      end: dayjs.tz(data.end, dayjs.tz.guess()).utc().toISOString(),
     };
+
     onEdit(selectedEvent._id, updatedEvent);
     onOpenChange(false);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -85,6 +95,7 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
         </DialogHeader>
         <Form {...form} key={selectedEvent?._id || "new-event"}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Event Title */}
             <FormField
               control={form.control}
               name="title"
@@ -98,6 +109,8 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
                 </FormItem>
               )}
             />
+
+            {/* Start Time */}
             <FormField
               control={form.control}
               name="start"
@@ -115,6 +128,8 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
                 </FormItem>
               )}
             />
+
+            {/* End Time */}
             <FormField
               control={form.control}
               name="end"
@@ -128,6 +143,7 @@ const EditEventDialog = ({ open, onOpenChange, selectedEvent, onEdit }) => {
                 </FormItem>
               )}
             />
+
             <DialogFooter className="flex justify-end space-x-2">
               <Button
                 type="button"

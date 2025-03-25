@@ -35,26 +35,22 @@ const eventSchema = z
     path: ["otherMeetingType"],
   });
 
-const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
+const useEventForm = ({ initialStart, initialEnd, onClose, roomId , isMonthView}) => {
   const { handleAddEvent } = useCalendar();
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
-  console.log("initail start :" ,initialStart)
+  const defaultStartUtc = isMonthView
+  ? dayjs.utc().startOf("day").hour(4).minute(0) // 9:00 AM UTC
+  : initialStart
+  ? dayjs(initialStart).utc()
+  : dayjs.utc().startOf("hour").add(1, "hour");
 
-
-  const defaultStartUtc = initialStart
-    ? dayjs(initialStart).utc()
-    : dayjs.utc().startOf("hour").add(1, "hour");
-    
-    
-  console.log("after convert utc initial start", defaultStartUtc)
-
-console.log("default time " , defaultStartUtc)
-
-  const defaultEndUtc = initialEnd
-    ? dayjs(initialEnd).utc()
-    : defaultStartUtc.add(1, "hour");
+const defaultEndUtc = isMonthView
+  ? defaultStartUtc.add(30, "minute") // 9:30 AM UTC
+  : initialEnd
+  ? dayjs(initialEnd).utc()
+  : defaultStartUtc.add(1, "hour");
 
 
   const form = useForm({
