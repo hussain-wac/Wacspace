@@ -1,4 +1,3 @@
-// EventDetailsDialog.jsx
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -6,7 +5,6 @@ import moment from "moment";
 import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { globalState } from "../jotai/globalState";
-
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.95 },
@@ -16,8 +14,7 @@ const modalVariants = {
 
 export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, onDelete }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  const user = useAtomValue(globalState );
+  const user = useAtomValue(globalState);
 
   if (!selectedEvent) return null;
 
@@ -54,12 +51,14 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
                 <p className="text-gray-900 dark:text-gray-100">{selectedEvent.organizer || "N/A"}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Project</p>
-                <p className="text-gray-900 dark:text-gray-100">{selectedEvent.projectName || "N/A"}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Meeting Type</p>
+                <p className="text-gray-900 dark:text-gray-100">{selectedEvent.meetingType || "N/A"}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Task</p>
-                <p className="text-gray-900 dark:text-gray-100">{selectedEvent.taskName || "N/A"}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Members</p>
+                <p className="text-gray-900 dark:text-gray-100">
+                  {selectedEvent.members?.length > 0 ? selectedEvent.members.join(", ") : "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Start Time</p>
@@ -93,7 +92,6 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
                   </Button>
                 </>
               ) : null}
-    
             </DialogFooter>
           </DialogContent>
         </motion.div>
