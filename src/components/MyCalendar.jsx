@@ -145,6 +145,9 @@ const MyCalendar = ({ roomId }) => {
     visible: { opacity: 1, transition: { duration: 0.3 } },
   };
 
+
+  const isMonthView = view === "month";
+
   return (
     <motion.div
       className="h-[90vh] p-8 bg-white dark:bg-[#1A1A1A]"
@@ -159,6 +162,7 @@ const MyCalendar = ({ roomId }) => {
             onOpenChange={setOpenAddEvent}
             selectedSlot={selectedSlot}
             onAddEvent={handleEventSubmit}
+            isMonthView={isMonthView}
           />
         </React.Fragment>
         <React.Fragment key="event-details-dialog">
@@ -176,6 +180,7 @@ const MyCalendar = ({ roomId }) => {
             onOpenChange={setOpenEditEvent}
             selectedEvent={selectedEvent}
             onEdit={handleUpdateEventSubmit}
+          
           />
         </React.Fragment>
       </AnimatePresence>

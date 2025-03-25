@@ -10,7 +10,7 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2, ease: "easeIn" } },
 };
 
-export const AddEventDialog = ({ open, onOpenChange, selectedSlot, onAddEvent }) => {
+export const AddEventDialog = ({ open, onOpenChange, selectedSlot, onAddEvent , isMonthView}) => {
   const handleSubmit = async (eventData) => {
     await onAddEvent(eventData);
     onOpenChange(false);
@@ -33,6 +33,7 @@ export const AddEventDialog = ({ open, onOpenChange, selectedSlot, onAddEvent })
             initialStart={selectedSlot?.start}
             initialEnd={selectedSlot?.end}
             onClose={() => onOpenChange(false)}
+            isMonthView = {isMonthView}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>

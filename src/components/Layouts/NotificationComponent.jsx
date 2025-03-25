@@ -19,7 +19,6 @@ const NotificationComponent = () => {
     deleteNotification,
   } = useNotification();
 
-  console.log(notifications);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
