@@ -83,7 +83,7 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
                 Close
               </Button>
 
-              {user.email === selectedEvent.email && selectedEvent.status !== "completed" ? (
+              {user.email === selectedEvent.email && selectedEvent.status !== "completed" && selectedEvent.status !== "running" ? (
                 <>
                   <Button variant="destructive" onClick={handleDelete}>
                     Delete
