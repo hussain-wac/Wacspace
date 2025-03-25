@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -9,8 +9,9 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import ReactSelect from "react-select";
 import {
-  Select,
+  Select as UISelect,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -19,24 +20,63 @@ import {
 import { Loader2 } from "lucide-react";
 import useEventForm from "../hooks/useEventForm";
 
-// Meeting type options
 const meetingTypeOptions = [
   { value: "internal", label: "Internal" },
   { value: "external", label: "External" },
   { value: "other", label: "Other" },
 ];
 
-const EventForm = ({ initialStart, initialEnd, onClose, roomId ,  isMonthView}) => {
-  const { form, loading, onSubmit } = useEventForm({
+const customStyles = {
+  control: (provided) => ({
+    ...provided,
+    minHeight: "38px",
+    borderRadius: "4px",
+  }),
+  multiValue: (provided) => ({
+    ...provided,
+    backgroundColor: "#d1e8ff",
+    margin: "2px",
+  }),
+  multiValueLabel: (provided) => ({
+    ...provided,
+    color: "#000",
+  }),
+  multiValueRemove: (provided) => ({
+    ...provided,
+    cursor: "pointer",
+    ":hover": {
+      backgroundColor: "#ff4d4d",
+      color: "white",
+    },
+  }),
+};
+
+const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
+  const { form, loading, onSubmit, employeeOptions, fetchEmployees, allMembers } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
     roomId,
-isMonthView
+    isMonthView,
   });
 
-  // Watch the meetingType field for conditional rendering
   const meetingType = form.watch("meetingType");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleInputChange = (inputValue, { action }) => {
+    if (action === "input-change") {
+      setSearchQuery(inputValue);
+      fetchEmployees(inputValue);
+    }
+  };
+
+  const handleSelectChange = (selected, { action }) => {
+    if (action === "select-option" || action === "remove-value" || action === "clear") {
+      const newMembers = selected ? selected.map((option) => option.value) : [];
+      form.setValue("members", newMembers);
+      setSearchQuery(""); // Clear search input after selection
+    }
+  };
 
   return (
     <Form {...form}>
@@ -48,11 +88,7 @@ isMonthView
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Enter event title"
-                  {...field}
-                  disabled={loading}
-                />
+                <Input placeholder="Enter event title" {...field} disabled={loading} />
               </FormControl>
               <FormMessage>{form.formState.errors.title?.message}</FormMessage>
             </FormItem>
@@ -61,20 +97,26 @@ isMonthView
 
         <FormField
           control={form.control}
-          name="organizer"
+          name="members"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organizer and Members</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="e.g., John Doe, Jane Smith, Alice"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage>
-                {form.formState.errors.organizer?.message}
-              </FormMessage>
+              <FormLabel>Members (First is Organizer)</FormLabel>
+              <ReactSelect
+                isMulti
+                options={employeeOptions.length > 0 ? employeeOptions : allMembers}
+                value={field.value.map((member) =>
+                  allMembers.find((option) => option.value === member) || 
+                  ({ value: member, label: member })
+                )}
+                onChange={handleSelectChange}
+                onInputChange={handleInputChange}
+                inputValue={searchQuery}
+                placeholder="Search members (min 3 chars)..."
+                isDisabled={loading}
+                styles={customStyles}
+                isClearable={true}
+              />
+              <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>
           )}
         />
@@ -85,27 +127,25 @@ isMonthView
           render={({ field }) => (
             <FormItem>
               <FormLabel>Meeting Type</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={loading}
-              >
-                <FormControl>
+              <FormControl>
+                <UISelect
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={loading}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a meeting type" />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {meetingTypeOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage>
-                {form.formState.errors.meetingType?.message}
-              </FormMessage>
+                  <SelectContent>
+                    {meetingTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </UISelect>
+              </FormControl>
+              <FormMessage>{form.formState.errors.meetingType?.message}</FormMessage>
             </FormItem>
           )}
         />
@@ -118,15 +158,9 @@ isMonthView
               <FormItem>
                 <FormLabel>Specify Meeting Type</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter meeting type"
-                    {...field}
-                    disabled={loading}
-                  />
+                  <Input placeholder="Enter meeting type" {...field} disabled={loading} />
                 </FormControl>
-                <FormMessage>
-                  {form.formState.errors.otherMeetingType?.message}
-                </FormMessage>
+                <FormMessage>{form.formState.errors.otherMeetingType?.message}</FormMessage>
               </FormItem>
             )}
           />
@@ -156,25 +190,6 @@ isMonthView
                 <Input type="datetime-local" {...field} disabled={loading} />
               </FormControl>
               <FormMessage>{form.formState.errors.end?.message}</FormMessage>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage>{form.formState.errors.email?.message}</FormMessage>
             </FormItem>
           )}
         />

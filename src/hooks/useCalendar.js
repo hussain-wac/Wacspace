@@ -73,7 +73,6 @@ const useCalendar = (roomId) => {
     }
   };
   
-
   const handleUpdateEvent = async (eventId, updatedEvent) => {
     try {
       const formattedEvent = {
