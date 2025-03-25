@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
@@ -10,6 +10,7 @@ import { useAtomValue } from "jotai";
 import { globalState } from "../jotai/globalState";
 import axios from "axios";
 import debounce from "lodash/debounce";
+import useSWR from "swr";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,45 +33,82 @@ const eventSchema = z
     message: "Start and end times must be on the same day (UTC)",
     path: ["end"],
   })
-  .refine((data) => data.meetingType !== "other" || (data.otherMeetingType?.trim()), {
-    message: "Please specify the meeting type when 'Other' is selected",
-    path: ["otherMeetingType"],
-  });
+  .refine(
+    (data) => data.meetingType !== "other" || data.otherMeetingType?.trim(),
+    {
+      message: "Please specify the meeting type when 'Other' is selected",
+      path: ["otherMeetingType"],
+    }
+  );
 
-const fetchEmployees = debounce(async (query, setEmployeeOptions, setAllMembers) => {
-  if (query.length < 3) {
-    setEmployeeOptions([]);
-    return;
-  }
-  try {
-    const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/users/search`, { params: { query } });
-    setEmployeeOptions(response.data);
-    setAllMembers((prev) => [...prev, ...response.data.filter((m) => !prev.some((p) => p.value === m.value))]);
-  } catch (error) {
-    console.error("Error fetching employees:", error);
-    setEmployeeOptions([]);
-  }
-}, 300);
+const fetcher = (url) => axios.get(url).then((res) => res.data);
 
-const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
+const useEventForm = ({
+  initialStart,
+  initialEnd,
+  onClose,
+  roomId,
+  isMonthView,
+}) => {
   const { handleAddEvent } = useCalendar();
   const [loading, setLoading] = useState(false);
   const [employeeOptions, setEmployeeOptions] = useState([]);
   const user = useAtomValue(globalState);
 
-  const defaultStartUtc = useMemo(() => (
-    isMonthView
-      ? dayjs.utc().startOf("day").hour(4).minute(0)
-      : initialStart ? dayjs(initialStart).utc() : dayjs.utc().startOf("hour").add(1, "hour")
-  ), [initialStart, isMonthView]);
+  const defaultStartUtc = isMonthView
+    ? dayjs.utc().startOf("day").hour(4).minute(0)
+    : initialStart
+    ? dayjs(initialStart).utc()
+    : dayjs.utc().startOf("hour").add(1, "hour");
 
-  const defaultEndUtc = useMemo(() => (
-    isMonthView ? defaultStartUtc.add(30, "minute") : initialEnd ? dayjs(initialEnd).utc() : defaultStartUtc.add(1, "hour")
-  ), [initialEnd, isMonthView, defaultStartUtc]);
+  const defaultEndUtc = isMonthView
+    ? defaultStartUtc.add(30, "minute")
+    : initialEnd
+    ? dayjs(initialEnd).utc()
+    : defaultStartUtc.add(1, "hour");
 
-  const initialMembers = useMemo(() => [user.name || "Muhammad Hussain N"], [user.name]);
-  const [allMembers, setAllMembers] = useState([{ value: user.name, label: user.name, email: user.email || "unknown@example.com" }]);
+  // Initial members setup
+  const initialMembers = [user.name];
+  const [allMembers, setAllMembers] = useState([
+    {
+      value: user.name,
+      label: user.name,
+      email: user.email || "unknown@example.com",
+    },
+  ]);
 
+  const [employeeQuery, setEmployeeQuery] = useState("");
+
+  const { data: employeeData } = useSWR(
+    employeeQuery.length >= 3
+      ? `${
+          import.meta.env.VITE_BASE_URL
+        }/api/users/search?query=${employeeQuery}`
+      : null,
+    fetcher,
+    {
+      onSuccess: (data) => {
+        setEmployeeOptions(data);
+        setAllMembers((prev) => [
+          ...prev,
+          ...data.filter((m) => !prev.some((p) => p.value === m.value)),
+        ]);
+      },
+    }
+  );
+
+  const debouncedSetQueryRef = useRef(
+    debounce((query) => {
+      setEmployeeQuery(query);
+    }, 500)
+  );
+
+  // Function to update query when input changes
+  const fetchEmployees = (query) => {
+    debouncedSetQueryRef.current(query);
+  };
+
+  // Initialize the form
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -80,15 +118,15 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
       otherMeetingType: "",
       start: defaultStartUtc.tz(dayjs.tz.guess()).format("YYYY-MM-DDTHH:mm"),
       end: defaultEndUtc.tz(dayjs.tz.guess()).format("YYYY-MM-DDTHH:mm"),
-      email: user.email || "hussain.n@webandcrafts.in",
+      email: user.email,
     },
   });
 
-  const handleFetchEmployees = useCallback((query) => fetchEmployees(query, setEmployeeOptions, setAllMembers), []);
-
+  // Form submit handler
   const onSubmit = async (data) => {
     setLoading(true);
-    const { title, members, meetingType, start, end, email, otherMeetingType } = data;
+    const { title, members, meetingType, start, end, email, otherMeetingType } =
+      data;
     const eventData = {
       title,
       organizer: members[0],
@@ -98,7 +136,9 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
       end: dayjs.tz(end, dayjs.tz.guess()).utc().toISOString(),
       email,
       roomId,
-      ...(meetingType === "other" && { otherMeetingType: otherMeetingType || "" }),
+      ...(meetingType === "other" && {
+        otherMeetingType: otherMeetingType || "",
+      }),
     };
     try {
       await handleAddEvent(eventData);
@@ -111,7 +151,14 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
     }
   };
 
-  return { form, loading, onSubmit, employeeOptions, fetchEmployees: handleFetchEmployees, allMembers };
+  return {
+    form,
+    loading,
+    onSubmit,
+    employeeOptions,
+    fetchEmployees,
+    allMembers,
+  };
 };
 
 export default useEventForm;
