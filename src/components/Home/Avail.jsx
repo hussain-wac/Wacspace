@@ -1,38 +1,31 @@
-import React from 'react';
-import useSWR from 'swr';
-import axios from 'axios';
-import { Clock, Video } from 'lucide-react';
-import moment from 'moment';
+import React from "react";
+import useSWR from "swr";
+import axios from "axios";
+import { Clock, Video } from "lucide-react";
+import moment from "moment";
+import UpcomingMeetingsSkeleton from "../Skeltons/UpcomingMeetingsSkeleton"; // <-- import the skeleton
 
-// Axios fetcher function for SWR
-const fetcher = (url) => axios.get(url).then(res => res.data);
+const fetcher = (url) => axios.get(url).then((res) => res.data);
 
 function UpcomingMeetings({ roomId }) {
-  const { 
-    data: meetings, 
-    error, 
-    isLoading 
+  const {
+    data: meetings,
+    error,
+    isLoading,
   } = useSWR(
-    `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${roomId}`, 
+    `${import.meta.env.VITE_BASE_URL}/api/meetings?roomId=${roomId}`,
     fetcher
   );
 
   // Separate meetings into running and upcoming
-  const runningMeetings = meetings?.filter(
-    (meeting) => meeting.status === "running"
-  ) || [];
-
-  const upcomingMeetings = meetings?.filter(
-    (meeting) => meeting.status === "upcoming"
-  ) || [];
+  const runningMeetings =
+    meetings?.filter((meeting) => meeting.status === "running") || [];
+  const upcomingMeetings =
+    meetings?.filter((meeting) => meeting.status === "upcoming") || [];
 
   // Render loading state
   if (isLoading) {
-    return (
-      <div className="w-full p-4 text-center text-neutral-500 animate-pulse">
-        Loading meetings...
-      </div>
-    );
+    return <UpcomingMeetingsSkeleton />;
   }
 
   // Render error state
@@ -66,8 +59,8 @@ function UpcomingMeetings({ roomId }) {
             </div>
             <div className="space-y-2">
               {runningMeetings.map((meeting) => (
-                <div 
-                  key={meeting.id} 
+                <div
+                  key={meeting.id}
                   className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-950/30 rounded-lg border border-green-100 dark:border-green-900"
                 >
                   <div className="flex items-center space-x-3">
@@ -99,8 +92,8 @@ function UpcomingMeetings({ roomId }) {
           {upcomingMeetings.length > 0 ? (
             <div className="space-y-2">
               {upcomingMeetings.map((meeting) => (
-                <div 
-                  key={meeting.id} 
+                <div
+                  key={meeting.id}
                   className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border dark:border-neutral-800"
                 >
                   <div className="flex items-center space-x-3">

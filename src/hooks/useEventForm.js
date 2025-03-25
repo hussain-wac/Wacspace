@@ -8,10 +8,8 @@ import useCalendar from "../hooks/useCalendar";
 import { z } from "zod";
 import { useAtomValue } from "jotai";
 import { globalState } from "../jotai/globalState";
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 const eventSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters"),
@@ -41,13 +39,13 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId , isMonthView}
   const user = useAtomValue(globalState);
 
   const defaultStartUtc = isMonthView
-  ? dayjs.utc().startOf("day").hour(4).minute(0) // 9:00 AM UTC
+  ? dayjs.utc().startOf("day").hour(4).minute(0) 
   : initialStart
   ? dayjs(initialStart).utc()
   : dayjs.utc().startOf("hour").add(1, "hour");
 
 const defaultEndUtc = isMonthView
-  ? defaultStartUtc.add(30, "minute") // 9:30 AM UTC
+  ? defaultStartUtc.add(30, "minute") 
   : initialEnd
   ? dayjs(initialEnd).utc()
   : defaultStartUtc.add(1, "hour");

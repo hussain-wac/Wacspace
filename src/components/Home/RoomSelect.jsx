@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Video, PenSquare, Coffee, Monitor, Mic, Tv, Loader2 } from "lucide-react";
+import { Users, Video, PenSquare, Coffee, Monitor, Mic, Tv } from "lucide-react";
 import Avail from "./Avail";
 import useRooms from "../../hooks/useRooms";
+import SkeletonCard from "../Skeltons/SkeletonCard"
 
 const featureIcons = {
   Video: <Video className="w-5 h-5" />,
@@ -24,10 +25,20 @@ function RoomSelect() {
   };
 
   if (isLoading) {
+    // Show multiple skeleton cards while loading
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center gap-2">
-        <Loader2 className="h-8 w-8 animate-spin text-neutral-800 dark:text-neutral-100" />
-        <p className="text-neutral-800 dark:text-neutral-100">Loading rooms...</p>
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 py-12 px-6 flex flex-col items-center transition-colors duration-300">
+        <h2 className="text-3xl font-bold text-center mb-8 text-neutral-800 dark:text-neutral-100">
+          Loading Rooms...
+        </h2>
+        <div className="max-w-5xl w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {/* Render 6 skeleton cards (or however many you want) */}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -35,7 +46,9 @@ function RoomSelect() {
   if (isError) {
     return (
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center">
-        <p className="text-red-600 dark:text-red-400">Error loading rooms: {isError.message}</p>
+        <p className="text-red-600 dark:text-red-400">
+          Error loading rooms: {isError.message}
+        </p>
       </div>
     );
   }
@@ -71,9 +84,7 @@ function RoomSelect() {
                   ) : null
                 )}
               </div>
-              <Avail
-               roomId={room.roomId}
-              />
+              <Avail roomId={room.roomId} />
             </div>
           ))}
         </div>
