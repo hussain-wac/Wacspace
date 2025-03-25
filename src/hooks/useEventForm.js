@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import moment from "moment";
 import dayjs from "dayjs";
 import useCalendar from "../hooks/useCalendar";
 import { z } from "zod";
@@ -26,7 +25,7 @@ const eventSchema = z
     message: "Start and end times must be on the same day",
     path: ["end"],
   })
-  .refine((data) => data.meetingType !== "other" || (data.meetingType === "other" && data.otherMeetingType && data.otherMeetingType.length > 0), {
+  .refine((data) => data.meetingType !== "other" || (data.meetingType === "other" && data.otherMeetingType?.trim()), {
     message: "Please specify the meeting type when 'Other' is selected",
     path: ["otherMeetingType"],
   });
@@ -36,12 +35,11 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
-  // Set initial start time to current time + 1 hour, and end time to start time + 1 hour
-  const now = moment();
-  const defaultStart = now.add(1, "hour").format("YYYY-MM-DDTHH:mm");
-  const defaultEnd = moment(defaultStart, "YYYY-MM-DDTHH:mm")
-    .add(1, "hour")
-    .format("YYYY-MM-DDTHH:mm");
+  // Set default start time to the next full hour and end time to one hour after start
+  const now = dayjs();
+  const nextHour = now.startOf("hour").add(1, "hour");
+  const defaultStart = initialStart ? dayjs(initialStart) : nextHour;
+  const defaultEnd = initialEnd ? dayjs(initialEnd) : defaultStart.add(1, "hour");
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -50,12 +48,8 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       organizer: user.name || "Muhammad Hussain N", // Single string input
       meetingType: "",
       otherMeetingType: "",
-      start: initialStart
-        ? moment(initialStart).format("YYYY-MM-DDTHH:mm")
-        : defaultStart,
-      end: initialEnd
-        ? moment(initialEnd).format("YYYY-MM-DDTHH:mm")
-        : defaultEnd,
+      start: defaultStart.format("YYYY-MM-DDTHH:mm"),
+      end: defaultEnd.format("YYYY-MM-DDTHH:mm"),
       email: user.email || "hussain.n@webandcrafts.in",
     },
   });
@@ -74,14 +68,14 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       organizer: organizer || "",
       members: members.length > 0 ? members : [],
       meetingType: data.meetingType,
-      start: dayjs(data.start).format("YYYY-MM-DDTHH:mm"), // Adjusted to match your format
-      end: dayjs(data.end).format("YYYY-MM-DDTHH:mm"), // Adjusted to match your format
+      start: dayjs(data.start).format("YYYY-MM-DDTHH:mm"), // Ensuring correct format
+      end: dayjs(data.end).format("YYYY-MM-DDTHH:mm"), // Ensuring correct format
       email: data.email,
       ...(data.meetingType === "other" && { otherMeetingType: data.otherMeetingType || "" }),
     };
 
     try {
-      console.log("Event Data to Submit:", eventData); // For debugging
+      console.log("Event Data to Submit:", eventData); // Debugging
       await handleAddEvent(eventData);
       form.reset();
       onClose();
