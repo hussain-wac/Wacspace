@@ -32,18 +32,17 @@ const customStyles = {
     minHeight: "38px",
     borderRadius: "4px",
   }),
-  multiValue: (provided, { data }) => ({
+  multiValue: (provided) => ({
     ...provided,
-    backgroundColor: data.isFixed ? "#e0e0e0" : "#d1e8ff",
+    backgroundColor: "#d1e8ff",
     margin: "2px",
   }),
   multiValueLabel: (provided) => ({
     ...provided,
     color: "#000",
   }),
-  multiValueRemove: (provided, { data }) => ({
+  multiValueRemove: (provided) => ({
     ...provided,
-    display: data.isFixed ? "none" : "flex",
     cursor: "pointer",
     ":hover": {
       backgroundColor: "#ff4d4d",
@@ -53,7 +52,7 @@ const customStyles = {
 };
 
 const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
-  const { form, loading, onSubmit, employeeOptions, organizer } = useEventForm({
+  const { form, loading, onSubmit, employeeOptions } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
@@ -62,6 +61,11 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
   });
 
   const meetingType = form.watch("meetingType");
+
+  // Debug log to check initial form values
+  React.useEffect(() => {
+    console.log("Form initial values:", form.getValues());
+  }, [form]);
 
   return (
     <Form {...form}>
@@ -80,37 +84,32 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
           )}
         />
 
-        {/* Organizer & Members Field (like Gmail To field) */}
         <FormField
           control={form.control}
-          name="participants"
+          name="members"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organizer & Participants</FormLabel>
+              <FormLabel>Members (First is Organizer)</FormLabel>
               <ReactSelect
                 isMulti
                 options={employeeOptions}
-                value={[
-                  { value: organizer, label: organizer, isFixed: true },
-                  ...employeeOptions.filter((option) => field.value.includes(option.value)),
-                ]}
+                value={employeeOptions.filter((option) =>
+                  field.value.includes(option.value)
+                )}
                 onChange={(selected) => {
-                  const members = selected
-                    .filter((option) => option.value !== organizer)
-                    .map((option) => option.value);
-                  field.onChange(members);
+                  const newMembers = selected ? selected.map((option) => option.value) : [];
+                  field.onChange(newMembers);
+                  console.log("Selected members:", newMembers); // Debug log
                 }}
-                placeholder="Add participants..."
+                placeholder="Add members..."
                 isDisabled={loading}
                 styles={customStyles}
-                isOptionDisabled={(option) => option.value === organizer}
               />
-              <FormMessage>{form.formState.errors.participants?.message}</FormMessage>
+              <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>
           )}
         />
 
-        {/* Meeting Type Field */}
         <FormField
           control={form.control}
           name="meetingType"
