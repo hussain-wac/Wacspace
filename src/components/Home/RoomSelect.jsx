@@ -72,9 +72,7 @@ function RoomSelect() {
                 )}
               </div>
               <Avail
-                availability={{
-                  availabilityPercentage: room.availabilityPercentage,
-                }}
+               roomId={room.roomId}
               />
             </div>
           ))}
