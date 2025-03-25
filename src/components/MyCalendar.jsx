@@ -205,7 +205,7 @@ const MyCalendar = ({ roomId }) => {
             initial="hidden"
             animate="visible"
           >
-            <div className="flex flex-col items-center py-4 bg-gray-100 dark:bg-gray-800 bg-opacity-90 rounded-lg p-4">
+            <div className="flex flex-col items-center py-4 bg-gray-100 dark:bg-neutral-800 bg-opacity-90 rounded-lg p-4">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
