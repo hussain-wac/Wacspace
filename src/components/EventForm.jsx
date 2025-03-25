@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -52,7 +52,7 @@ const customStyles = {
 };
 
 const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
-  const { form, loading, onSubmit, employeeOptions } = useEventForm({
+  const { form, loading, onSubmit, employeeOptions, fetchEmployees, allMembers } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
@@ -61,11 +61,22 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
   });
 
   const meetingType = form.watch("meetingType");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Debug log to check initial form values
-  React.useEffect(() => {
-    console.log("Form initial values:", form.getValues());
-  }, [form]);
+  const handleInputChange = (inputValue, { action }) => {
+    if (action === "input-change") {
+      setSearchQuery(inputValue);
+      fetchEmployees(inputValue);
+    }
+  };
+
+  const handleSelectChange = (selected, { action }) => {
+    if (action === "select-option" || action === "remove-value" || action === "clear") {
+      const newMembers = selected ? selected.map((option) => option.value) : [];
+      form.setValue("members", newMembers);
+      setSearchQuery(""); // Clear search input after selection
+    }
+  };
 
   return (
     <Form {...form}>
@@ -92,18 +103,18 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
               <FormLabel>Members (First is Organizer)</FormLabel>
               <ReactSelect
                 isMulti
-                options={employeeOptions}
-                value={employeeOptions.filter((option) =>
-                  field.value.includes(option.value)
+                options={employeeOptions.length > 0 ? employeeOptions : allMembers}
+                value={field.value.map((member) =>
+                  allMembers.find((option) => option.value === member) || 
+                  ({ value: member, label: member })
                 )}
-                onChange={(selected) => {
-                  const newMembers = selected ? selected.map((option) => option.value) : [];
-                  field.onChange(newMembers);
-                  console.log("Selected members:", newMembers); // Debug log
-                }}
-                placeholder="Add members..."
+                onChange={handleSelectChange}
+                onInputChange={handleInputChange}
+                inputValue={searchQuery}
+                placeholder="Search members (min 3 chars)..."
                 isDisabled={loading}
                 styles={customStyles}
+                isClearable={true}
               />
               <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>

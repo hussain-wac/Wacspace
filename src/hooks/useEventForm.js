@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
@@ -8,6 +8,8 @@ import useCalendar from "../hooks/useCalendar";
 import { z } from "zod";
 import { useAtomValue } from "jotai";
 import { globalState } from "../jotai/globalState";
+import axios from "axios";
+import debounce from "lodash/debounce";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,20 +40,9 @@ const eventSchema = z
 const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
   const { handleAddEvent } = useCalendar();
   const [loading, setLoading] = useState(false);
+  const [employeeOptions, setEmployeeOptions] = useState([]); // Options from search
+  const [allMembers, setAllMembers] = useState([]); // All known members
   const user = useAtomValue(globalState);
-
-  console.log("User from globalState:", user); // Debug log to check user object
-
-  const employeeOptions = [
-    { value: "Aarav Sharma", label: "Aarav Sharma" },
-    { value: "Aditi Verma", label: "Aditi Verma" },
-    { value: "Akhil Reddy", label: "Akhil Reddy" },
-    { value: "Ananya Iyer", label: "Ananya Iyer" },
-    { value: "Arjun Patel", label: "Arjun Patel" },
-    { value: "Muhammad Hussain N", label: "Muhammad Hussain N" },
-    {value: "Muhammed Anas KT", label:"Muhammed Anas KT"}
-    // Add other options as needed...
-  ];
 
   const defaultStartUtc = isMonthView
     ? dayjs.utc().startOf("day").hour(4).minute(0)
@@ -66,7 +57,13 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
     : defaultStartUtc.add(1, "hour");
 
   const initialMembers = user.name ? [user.name] : ["Muhammad Hussain N"];
-  console.log("Initial members:", initialMembers); // Debug log
+
+  // Initialize allMembers with the initial member
+  useEffect(() => {
+    if (user.name && !allMembers.some((m) => m.value === user.name)) {
+      setAllMembers([{ value: user.name, label: user.name, email: user.email || "unknown@example.com" }]);
+    }
+  }, [user.name, user.email]);
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -80,6 +77,30 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
       email: user.email || "hussain.n@webandcrafts.in",
     },
   });
+
+  const fetchEmployees = debounce(async (query) => {
+    if (query.length < 3) {
+      setEmployeeOptions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`http://localhost:5000/api/users/search`, {
+        params: { query },
+      });
+      setEmployeeOptions(response.data);
+      // Update allMembers with new search results if not already present
+      setAllMembers((prev) => {
+        const newMembers = response.data.filter(
+          (newOption) => !prev.some((m) => m.value === newOption.value)
+        );
+        return [...prev, ...newMembers];
+      });
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      setEmployeeOptions([]);
+    }
+  }, 300);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -111,7 +132,13 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
     }
   };
 
-  return { form, loading, onSubmit, employeeOptions };
+  useEffect(() => {
+    return () => {
+      fetchEmployees.cancel();
+    };
+  }, []);
+
+  return { form, loading, onSubmit, employeeOptions, fetchEmployees, allMembers };
 };
 
 export default useEventForm;
