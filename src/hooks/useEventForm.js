@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
@@ -32,38 +32,44 @@ const eventSchema = z
     message: "Start and end times must be on the same day (UTC)",
     path: ["end"],
   })
-  .refine((data) => data.meetingType !== "other" || (data.meetingType === "other" && data.otherMeetingType?.trim()), {
+  .refine((data) => data.meetingType !== "other" || (data.otherMeetingType?.trim()), {
     message: "Please specify the meeting type when 'Other' is selected",
     path: ["otherMeetingType"],
   });
 
+const fetchEmployees = debounce(async (query, setEmployeeOptions, setAllMembers) => {
+  if (query.length < 3) {
+    setEmployeeOptions([]);
+    return;
+  }
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/users/search`, { params: { query } });
+    setEmployeeOptions(response.data);
+    setAllMembers((prev) => [...prev, ...response.data.filter((m) => !prev.some((p) => p.value === m.value))]);
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    setEmployeeOptions([]);
+  }
+}, 300);
+
 const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
   const { handleAddEvent } = useCalendar();
   const [loading, setLoading] = useState(false);
-  const [employeeOptions, setEmployeeOptions] = useState([]); // Options from search
-  const [allMembers, setAllMembers] = useState([]); // All known members
+  const [employeeOptions, setEmployeeOptions] = useState([]);
   const user = useAtomValue(globalState);
 
-  const defaultStartUtc = isMonthView
-    ? dayjs.utc().startOf("day").hour(4).minute(0)
-    : initialStart
-    ? dayjs(initialStart).utc()
-    : dayjs.utc().startOf("hour").add(1, "hour");
+  const defaultStartUtc = useMemo(() => (
+    isMonthView
+      ? dayjs.utc().startOf("day").hour(4).minute(0)
+      : initialStart ? dayjs(initialStart).utc() : dayjs.utc().startOf("hour").add(1, "hour")
+  ), [initialStart, isMonthView]);
 
-  const defaultEndUtc = isMonthView
-    ? defaultStartUtc.add(30, "minute")
-    : initialEnd
-    ? dayjs(initialEnd).utc()
-    : defaultStartUtc.add(1, "hour");
+  const defaultEndUtc = useMemo(() => (
+    isMonthView ? defaultStartUtc.add(30, "minute") : initialEnd ? dayjs(initialEnd).utc() : defaultStartUtc.add(1, "hour")
+  ), [initialEnd, isMonthView, defaultStartUtc]);
 
-  const initialMembers = user.name ? [user.name] : ["Muhammad Hussain N"];
-
-  // Initialize allMembers with the initial member
-  useEffect(() => {
-    if (user.name && !allMembers.some((m) => m.value === user.name)) {
-      setAllMembers([{ value: user.name, label: user.name, email: user.email || "unknown@example.com" }]);
-    }
-  }, [user.name, user.email]);
+  const initialMembers = useMemo(() => [user.name || "Muhammad Hussain N"], [user.name]);
+  const [allMembers, setAllMembers] = useState([{ value: user.name, label: user.name, email: user.email || "unknown@example.com" }]);
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -78,50 +84,23 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
     },
   });
 
-  const fetchEmployees = debounce(async (query) => {
-    if (query.length < 3) {
-      setEmployeeOptions([]);
-      return;
-    }
-
-    try {
-      const response = await axios.get(`http://localhost:5000/api/users/search`, {
-        params: { query },
-      });
-      setEmployeeOptions(response.data);
-      // Update allMembers with new search results if not already present
-      setAllMembers((prev) => {
-        const newMembers = response.data.filter(
-          (newOption) => !prev.some((m) => m.value === newOption.value)
-        );
-        return [...prev, ...newMembers];
-      });
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      setEmployeeOptions([]);
-    }
-  }, 300);
+  const handleFetchEmployees = useCallback((query) => fetchEmployees(query, setEmployeeOptions, setAllMembers), []);
 
   const onSubmit = async (data) => {
     setLoading(true);
-
-    const organizer = data.members[0];
-    const remainingMembers = data.members.slice(1);
-
+    const { title, members, meetingType, start, end, email, otherMeetingType } = data;
     const eventData = {
-      title: data.title,
-      organizer,
-      members: remainingMembers,
-      meetingType: data.meetingType,
-      start: dayjs.tz(data.start, dayjs.tz.guess()).utc().toISOString(),
-      end: dayjs.tz(data.end, dayjs.tz.guess()).utc().toISOString(),
-      email: data.email,
+      title,
+      organizer: members[0],
+      members: members.slice(1),
+      meetingType,
+      start: dayjs.tz(start, dayjs.tz.guess()).utc().toISOString(),
+      end: dayjs.tz(end, dayjs.tz.guess()).utc().toISOString(),
+      email,
       roomId,
-      ...(data.meetingType === "other" && { otherMeetingType: data.otherMeetingType || "" }),
+      ...(meetingType === "other" && { otherMeetingType: otherMeetingType || "" }),
     };
-
     try {
-      console.log("Event Data to Submit:", eventData);
       await handleAddEvent(eventData);
       form.reset();
       onClose();
@@ -132,13 +111,7 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }
     }
   };
 
-  useEffect(() => {
-    return () => {
-      fetchEmployees.cancel();
-    };
-  }, []);
-
-  return { form, loading, onSubmit, employeeOptions, fetchEmployees, allMembers };
+  return { form, loading, onSubmit, employeeOptions, fetchEmployees: handleFetchEmployees, allMembers };
 };
 
 export default useEventForm;
