@@ -32,7 +32,6 @@ const useCalendar = (roomId) => {
 
   const [view, setView] = useState("day");
   const onView = (newView) => setView(newView);
-
   const handleAddEvent = async (newEvent) => {
     try {
       const newEventWithRoomId = {
@@ -49,7 +48,7 @@ const useCalendar = (roomId) => {
         undefined,
         { revalidate: true }
       );
-
+  
       toast.success("Meeting created", {
         description: `${new Date(newEvent.start).toLocaleString()}`,
         action: {
@@ -58,13 +57,22 @@ const useCalendar = (roomId) => {
         },
       });
     } catch (err) {
-      console.error(
-        "Error adding event:",
-        err.response ? err.response.data : err.message
-      );
-      toast.error("Failed to create meeting.");
+      const errorMessage = err.response?.data?.message;
+      
+      if (errorMessage === "Members must be a non-empty array.") {
+        toast.error("Meeting creation failed!", {
+          description: "Please add at least one member to the meeting.",
+        });
+      } else {
+        console.error(
+          "Error adding event:",
+          err.response ? err.response.data : err.message
+        );
+        toast.error("Failed to create meeting.");
+      }
     }
   };
+  
 
   const handleUpdateEvent = async (eventId, updatedEvent) => {
     try {

@@ -14,6 +14,13 @@ const useNotification = () => {
   const user = useAtomValue(globalState);
 
   useEffect(() => {
+    // Request permission for browser notifications
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then((permission) => {
+        console.log("Notification permission:", permission);
+      });
+    }
+
     const socket = io(`${import.meta.env.VITE_BASE_URL}`);
     const userEmail = user?.email;
 
@@ -46,10 +53,24 @@ const useNotification = () => {
         localStorage.setItem("unreadCount", newCount);
         return newCount;
       });
+
+      // Show browser notification if permission is granted
+      if (Notification.permission === "granted") {
+        const browserNotification = new Notification("New Meeting Notification", {
+          body: data.message,
+          icon: "/notification-icon.png", // Change this to your app's icon
+        });
+
+        // Handle click on notification (optional)
+        browserNotification.onclick = () => {
+          window.focus(); // Bring the app to the front
+        };
+      }
     });
 
     return () => socket.disconnect();
   }, []);
+
   const markAllRead = () => {
     setNotifications((prev) => {
       const updatedNotifications = prev.map((notif) => ({
