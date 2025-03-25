@@ -21,9 +21,8 @@ import useEventForm from "../hooks/useEventForm";
 
 // Meeting type options
 const meetingTypeOptions = [
-  { value: "planning", label: "Planning" },
-  { value: "review", label: "Review" },
-  { value: "brainstorming", label: "Brainstorming" },
+  { value: "internal", label: "Internal" },
+  { value: "external", label: "External" },
   { value: "other", label: "Other" },
 ];
 

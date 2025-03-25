@@ -11,9 +11,8 @@ import { AddEventDialog } from "./AddEventDialog";
 import EditEventDialog from "./EditEventDialog";
 import "../styles/calendarStyles.css";
 import useEventHandle from "../hooks/useEventHandle";
-
+import CustomEvent from "./CustomEvent";
 const localizer = momentLocalizer(moment);
-
 const MyCalendar = ({ roomId }) => {
   const {
     view,
@@ -105,9 +104,10 @@ const MyCalendar = ({ roomId }) => {
     return {};
   };
 
-  const filteredEvents = view === "day"
-    ? events.filter((event) => !moment(event.end).isBefore(moment()))
-    : events;
+  const filteredEvents =
+    view === "day"
+      ? events.filter((event) => !moment(event.end).isBefore(moment()))
+      : events;
 
   const injectCalendarStyles = () => ({
     "--border-color": isDarkMode ? "#3A3A3A" : "#E5E7EB",
@@ -125,7 +125,10 @@ const MyCalendar = ({ roomId }) => {
   const dayStart = new Date();
   dayStart.setHours(0, 0, 0, 0);
 
-  const isDisplayedDayToday = moment(currentCalendarDate).isSame(moment(), "day");
+  const isDisplayedDayToday = moment(currentCalendarDate).isSame(
+    moment(),
+    "day"
+  );
   const minTime = view === "day" && isDisplayedDayToday ? new Date() : dayStart;
 
   const containerVariants = {
@@ -144,7 +147,7 @@ const MyCalendar = ({ roomId }) => {
 
   return (
     <motion.div
-      className="h-[90vh] p-8 bg-white dark:bg-[#1A1A1A] "
+      className="h-[90vh] p-8 bg-white dark:bg-[#1A1A1A]"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -206,6 +209,11 @@ const MyCalendar = ({ roomId }) => {
             onSelectSlot={handleSelectSlot}
             onSelectEvent={handleSelectEvent}
             min={minTime}
+            components={{
+              event: (props) => (
+                <CustomEvent {...props} isDarkMode={isDarkMode} />
+              ), // Pass isDarkMode to CustomEvent
+            }}
           />
         </motion.div>
 
