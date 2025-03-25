@@ -124,13 +124,6 @@ function UpcomingMeetings({ roomId }) {
             </div>
           )}
         </div>
-
-        {/* Fallback for no meetings */}
-        {runningMeetings.length === 0 && upcomingMeetings.length === 0 && (
-          <div className="text-sm text-neutral-500 text-center py-6">
-            No meetings scheduled
-          </div>
-        )}
       </div>
     </div>
   );
