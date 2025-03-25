@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -18,17 +18,25 @@ import {
 } from "./ui/select";
 import { Loader2 } from "lucide-react";
 import useEventForm from "../hooks/useEventForm";
-import useProjects from "../hooks/useProjects";
 
-const EventForm = ({ initialStart, initialEnd, onClose }) => {
+// Meeting type options
+const meetingTypeOptions = [
+  { value: "planning", label: "Planning" },
+  { value: "review", label: "Review" },
+  { value: "brainstorming", label: "Brainstorming" },
+  { value: "other", label: "Other" },
+];
+
+const EventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const { form, loading, onSubmit } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
+    roomId,
   });
 
-  const { projectOptions, taskOptions, isLoading } = useProjects();
-  const [selectedProject, setSelectedProject] = useState("");
+  // Watch the meetingType field for conditional rendering
+  const meetingType = form.watch("meetingType");
 
   return (
     <Form {...form}>
@@ -56,10 +64,10 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
           name="organizer"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organizer Name</FormLabel>
+              <FormLabel>Organizer and Members</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter organizer name"
+                  placeholder="e.g., John Doe, Jane Smith, Alice"
                   {...field}
                   disabled={loading}
                 />
@@ -73,32 +81,22 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
 
         <FormField
           control={form.control}
-          name="project"
+          name="meetingType"
           render={({ field }) => (
-        
-            <FormItem >
-              <FormLabel>Project</FormLabel>
+            <FormItem>
+              <FormLabel>Meeting Type</FormLabel>
               <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setSelectedProject(value);
-                }}
+                onValueChange={field.onChange}
                 defaultValue={field.value}
-                disabled={isLoading}
+                disabled={loading}
               >
                 <FormControl>
                   <SelectTrigger>
-                    {isLoading ? (
-                      <div className="w-25">
-                        <Loader2 className="animate-spin h-5 w-5 " />
-                      </div>
-                    ) : (
-                      <SelectValue placeholder="Select a project" />
-                    )}
+                    <SelectValue placeholder="Select a meeting type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {projectOptions.map((option) => (
+                  {meetingTypeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -106,41 +104,33 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
                 </SelectContent>
               </Select>
               <FormMessage>
-                {form.formState.errors.project?.message}
+                {form.formState.errors.meetingType?.message}
               </FormMessage>
             </FormItem>
-
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="task"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Task</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={loading || isLoading || !selectedProject}
-              >
+        {meetingType === "other" && (
+          <FormField
+            control={form.control}
+            name="otherMeetingType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Specify Meeting Type</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a task" />
-                  </SelectTrigger>
+                  <Input
+                    placeholder="Enter meeting type"
+                    {...field}
+                    disabled={loading}
+                  />
                 </FormControl>
-                <SelectContent>
-                  {taskOptions(selectedProject).map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage>{form.formState.errors.task?.message}</FormMessage>
-            </FormItem>
-          )}
-        />
+                <FormMessage>
+                  {form.formState.errors.otherMeetingType?.message}
+                </FormMessage>
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -166,6 +156,25 @@ const EventForm = ({ initialStart, initialEnd, onClose }) => {
                 <Input type="datetime-local" {...field} disabled={loading} />
               </FormControl>
               <FormMessage>{form.formState.errors.end?.message}</FormMessage>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  {...field}
+                  disabled={loading}
+                />
+              </FormControl>
+              <FormMessage>{form.formState.errors.email?.message}</FormMessage>
             </FormItem>
           )}
         />
