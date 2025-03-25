@@ -2,10 +2,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import useCalendar from "../hooks/useCalendar";
 import { z } from "zod";
 import { useAtomValue } from "jotai";
 import { globalState } from "../jotai/globalState";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const eventSchema = z
   .object({
@@ -17,12 +22,12 @@ const eventSchema = z
     end: z.string().nonempty("End time is required"),
     email: z.string().email("Invalid email address"),
   })
-  .refine((data) => dayjs(data.end).isAfter(dayjs(data.start)), {
+  .refine((data) => dayjs.utc(data.end).isAfter(dayjs.utc(data.start)), {
     message: "End time must be after start time",
     path: ["end"],
   })
-  .refine((data) => dayjs(data.start).isSame(dayjs(data.end), "day"), {
-    message: "Start and end times must be on the same day",
+  .refine((data) => dayjs.utc(data.start).isSame(dayjs.utc(data.end), "day"), {
+    message: "Start and end times must be on the same day (UTC)",
     path: ["end"],
   })
   .refine((data) => data.meetingType !== "other" || (data.meetingType === "other" && data.otherMeetingType?.trim()), {
@@ -35,21 +40,24 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
-  // Set default start time to the next full hour and end time to one hour after start
-  const now = dayjs();
-  const nextHour = now.startOf("hour").add(1, "hour");
-  const defaultStart = initialStart ? dayjs(initialStart) : nextHour;
-  const defaultEnd = initialEnd ? dayjs(initialEnd) : defaultStart.add(1, "hour");
+  // Convert initialStart and initialEnd to UTC if provided
+  const defaultStartUtc = initialStart
+    ? dayjs(initialStart).utc()
+    : dayjs.utc().startOf("hour").add(1, "hour"); // Next full hour in UTC
+
+  const defaultEndUtc = initialEnd
+    ? dayjs(initialEnd).utc()
+    : defaultStartUtc.add(1, "hour");
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
       title: "Team meeting",
-      organizer: user.name || "Muhammad Hussain N", // Single string input
+      organizer: user.name || "Muhammad Hussain N",
       meetingType: "",
       otherMeetingType: "",
-      start: defaultStart.format("YYYY-MM-DDTHH:mm"),
-      end: defaultEnd.format("YYYY-MM-DDTHH:mm"),
+      start: defaultStartUtc.format("YYYY-MM-DDTHH:mm"), // ✅ Correct format for datetime-local input
+      end: defaultEndUtc.format("YYYY-MM-DDTHH:mm"), // ✅ Correct format for datetime-local input
       email: user.email || "hussain.n@webandcrafts.in",
     },
   });
@@ -68,14 +76,14 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       organizer: organizer || "",
       members: members.length > 0 ? members : [],
       meetingType: data.meetingType,
-      start: dayjs(data.start).format("YYYY-MM-DDTHH:mm"), // Ensuring correct format
-      end: dayjs(data.end).format("YYYY-MM-DDTHH:mm"), // Ensuring correct format
+      start: dayjs.utc(data.start).toISOString(), // ✅ Convert to full UTC format before sending
+      end: dayjs.utc(data.end).toISOString(), // ✅ Convert to full UTC format before sending
       email: data.email,
       ...(data.meetingType === "other" && { otherMeetingType: data.otherMeetingType || "" }),
     };
 
     try {
-      console.log("Event Data to Submit:", eventData); // Debugging
+      console.log("Event Data to Submit:", eventData);
       await handleAddEvent(eventData);
       form.reset();
       onClose();
