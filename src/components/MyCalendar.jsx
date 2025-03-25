@@ -49,14 +49,25 @@ const MyCalendar = ({ roomId }) => {
   };
 
   const eventStyleGetter = (event) => {
+    let backgroundColor;
+    switch (event.status) {
+      case "running":
+        backgroundColor = isDarkMode ? "#10B981" : "#34D399"; // Green shades
+        break;
+      case "upcoming":
+        backgroundColor = isDarkMode ? "#3B82F6" : "#60A5FA"; // Blue shades
+        break;
+      case "completed":
+        backgroundColor = isDarkMode ? "#EF4444" : "#F87171"; // Red shades
+        break;
+      default:
+        backgroundColor = isDarkMode ? "#6B7280" : "#9CA3AF"; // Default gray
+    }
+
     const isPastEvent = moment(event.end).isBefore(moment());
     return {
       style: {
-        backgroundColor: isPastEvent
-          ? isDarkMode
-            ? "#4A4A4A"
-            : "#6B7280"
-          : event.color || (isDarkMode ? "#3B82F6" : "#93C5FD"),
+        backgroundColor,
         color: isPastEvent ? (isDarkMode ? "#E5E7EB" : "#1F2937") : "#fff",
         borderRadius: "4px",
         border: "none",
@@ -94,9 +105,9 @@ const MyCalendar = ({ roomId }) => {
     return {};
   };
 
-  const filteredEvents = view === "day" 
-  ? events.filter(event => !moment(event.end).isBefore(moment()))
-  : events;
+  const filteredEvents = view === "day"
+    ? events.filter((event) => !moment(event.end).isBefore(moment()))
+    : events;
 
   const injectCalendarStyles = () => ({
     "--border-color": isDarkMode ? "#3A3A3A" : "#E5E7EB",
