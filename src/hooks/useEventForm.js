@@ -40,14 +40,22 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(globalState);
 
-  // Convert initialStart and initialEnd to UTC if provided
+  console.log("initail start :" ,initialStart)
+
+
   const defaultStartUtc = initialStart
     ? dayjs(initialStart).utc()
-    : dayjs.utc().startOf("hour").add(1, "hour"); // Next full hour in UTC
+    : dayjs.utc().startOf("hour").add(1, "hour");
+    
+    
+  console.log("after convert utc initial start", defaultStartUtc)
+
+console.log("default time " , defaultStartUtc)
 
   const defaultEndUtc = initialEnd
     ? dayjs(initialEnd).utc()
     : defaultStartUtc.add(1, "hour");
+
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -56,8 +64,8 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       organizer: user.name || "Muhammad Hussain N",
       meetingType: "",
       otherMeetingType: "",
-      start: defaultStartUtc.format("YYYY-MM-DDTHH:mm"), // ✅ Correct format for datetime-local input
-      end: defaultEndUtc.format("YYYY-MM-DDTHH:mm"), // ✅ Correct format for datetime-local input
+      start: defaultStartUtc.tz(dayjs.tz.guess()).format("YYYY-MM-DDTHH:mm"),
+      end: defaultEndUtc.tz(dayjs.tz.guess()).format("YYYY-MM-DDTHH:mm"),
       email: user.email || "hussain.n@webandcrafts.in",
     },
   });
@@ -65,7 +73,6 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
   const onSubmit = async (data) => {
     setLoading(true);
 
-    // Split organizer string into organizer and members
     const [organizer, ...members] = data.organizer
       .split(",")
       .map((name) => name.trim())
@@ -76,8 +83,8 @@ const useEventForm = ({ initialStart, initialEnd, onClose, roomId }) => {
       organizer: organizer || "",
       members: members.length > 0 ? members : [],
       meetingType: data.meetingType,
-      start: dayjs.utc(data.start).toISOString(), // ✅ Convert to full UTC format before sending
-      end: dayjs.utc(data.end).toISOString(), // ✅ Convert to full UTC format before sending
+      start: dayjs.tz(data.start, dayjs.tz.guess()).utc().toISOString(),
+      end: dayjs.tz(data.end, dayjs.tz.guess()).utc().toISOString(),
       email: data.email,
       ...(data.meetingType === "other" && { otherMeetingType: data.otherMeetingType || "" }),
     };
