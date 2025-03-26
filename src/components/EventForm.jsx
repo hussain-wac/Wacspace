@@ -9,7 +9,6 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import ReactSelect from "react-select";
 import {
   Select as UISelect,
   SelectContent,
@@ -26,72 +25,39 @@ const meetingTypeOptions = [
   { value: "other", label: "Other" },
 ];
 
-const customStyles = {
-  control: (provided) => ({
-    ...provided,
-    minHeight: "38px",
-    borderRadius: "4px",
-  }),
-  multiValue: (provided) => ({
-    ...provided,
-    backgroundColor: "#d1e8ff",
-    margin: "2px",
-  }),
-  multiValueLabel: (provided) => ({
-    ...provided,
-    color: "#000",
-  }),
-  multiValueRemove: (provided) => ({
-    ...provided,
-    cursor: "pointer",
-    ":hover": {
-      backgroundColor: "#ff4d4d",
-      color: "white",
-    },
-  }),
-};
-
 const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
-  const { 
-    form, 
-    loading, 
-    onSubmit, 
-    employeeOptions, 
-    fetchEmployees, 
-    allMembers,
-    isEmployeeLoading 
-  } = useEventForm({
+  const { form, onSubmit } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
     roomId,
     isMonthView,
   });
-
   const meetingType = form.watch("meetingType");
-  const [searchQuery, setSearchQuery] = useState("");
+  const loading = form.formState.isSubmitting;
 
-  const handleInputChange = (inputValue, { action }) => {
-    if (action === "input-change") {
-      setSearchQuery(inputValue);
-      fetchEmployees(inputValue);
+  // State for handling the tag input for members
+  const [tagInput, setTagInput] = useState("");
+  const [memberTags, setMemberTags] = useState([]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const value = tagInput.trim();
+      if (value && !memberTags.includes(value)) {
+        const newTags = [...memberTags, value];
+        setMemberTags(newTags);
+        form.setValue("members", newTags);
+      }
+      setTagInput("");
     }
   };
 
-  const handleSelectChange = (selected, { action }) => {
-    if (action === "select-option" || action === "remove-value" || action === "clear") {
-      const newMembers = selected ? selected.map((option) => option.value) : [];
-      form.setValue("members", newMembers);
-      setSearchQuery(""); // Clear search input after selection
-    }
+  const removeTag = (index) => {
+    const newTags = memberTags.filter((_, i) => i !== index);
+    setMemberTags(newTags);
+    form.setValue("members", newTags);
   };
-
-  // Define options based on loading state
-  const selectOptions = isEmployeeLoading
-    ? [{ value: "loading", label: "Loading employees...", isDisabled: true }]
-    : employeeOptions.length > 0
-    ? employeeOptions
-    : allMembers;
 
   return (
     <Form {...form}>
@@ -110,28 +76,53 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
           )}
         />
 
+        {/* Organizer field (now editable) */}
+        <FormField
+          control={form.control}
+          name="organizer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organizer</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Enter organizer name" disabled={loading} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Custom tag input for members */}
         <FormField
           control={form.control}
           name="members"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
-              <FormLabel>Members (First is Organizer)</FormLabel>
-              <ReactSelect
-                isMulti
-                options={selectOptions}
-                value={field.value.map((member) =>
-                  allMembers.find((option) => option.value === member) || 
-                  ({ value: member, label: member })
-                )}
-                onChange={handleSelectChange}
-                onInputChange={handleInputChange}
-                inputValue={searchQuery}
-                placeholder="Search members (min 3 chars)..."
-                isDisabled={loading}
-                styles={customStyles}
-                isClearable={true}
-                isLoading={isEmployeeLoading} // Optional: adds a loading spinner to the select
-              />
+              <FormLabel>Members</FormLabel>
+              <div className="flex flex-wrap items-center gap-2 p-2 border rounded">
+                {memberTags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="ml-1 text-red-500"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a member and press Enter or comma"
+                  className="outline-none flex-1 min-w-[100px]"
+                  disabled={loading}
+                />
+              </div>
               <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>
           )}
@@ -144,11 +135,7 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
             <FormItem>
               <FormLabel>Meeting Type</FormLabel>
               <FormControl>
-                <UISelect
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={loading}
-                >
+                <UISelect onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a meeting type" />
                   </SelectTrigger>
