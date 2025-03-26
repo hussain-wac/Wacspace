@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-const useEventHandle = (events, handleAddEvent) => {
+const useEventHandle = (events, handleAddEvent, isMonthView) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openEditEvent, setOpenEditEvent] = useState(false);
   const [openAddEvent, setOpenAddEvent] = useState(false);
@@ -18,11 +18,13 @@ const useEventHandle = (events, handleAddEvent) => {
     setSelectedSlot(null);
   };
 
+  console.log("Month View:", isMonthView);
+
   const handleSelectSlot = (slotInfo) => {
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-  
+
     if (slotInfo.start < today) {
       toast("You cannot add events in the past!", {
         description: "Please select today or a future date.",
@@ -30,24 +32,35 @@ const useEventHandle = (events, handleAddEvent) => {
       });
       return;
     }
-  
-    // Check for overlapping events
-    const isOverlap = events.some(event => 
-      (slotInfo.start < event.end && slotInfo.end > event.start) // Overlapping condition
-    );
-  
-    if (isOverlap) {
-      toast("Event overlaps with an existing one!", {
-        description: "Please select a different time slot.",
-        variant: "destructive",
+
+    // Apply overlap validation only when not in month view
+    if (!isMonthView) {
+      const selectedStart = new Date(slotInfo.start);
+      const selectedEnd = new Date(slotInfo.end);
+
+      const isOverlap = events.some(event => {
+        const eventStart = new Date(event.start);
+        const eventEnd = new Date(event.end);
+
+        return (
+          (selectedStart >= eventStart && selectedStart < eventEnd) || // Starts inside an existing event
+          (selectedEnd > eventStart && selectedEnd <= eventEnd) || // Ends inside an existing event
+          (selectedStart <= eventStart && selectedEnd >= eventEnd) // Fully contains an existing event
+        );
       });
-      return;
+
+      if (isOverlap) {
+        toast("Event overlaps with an existing one!", {
+          description: "Please select a different time slot.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
-  
+
     setSelectedSlot(slotInfo);
     setOpenAddEvent(true);
   };
-  
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
