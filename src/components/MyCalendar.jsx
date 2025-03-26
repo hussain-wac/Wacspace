@@ -23,6 +23,9 @@ const MyCalendar = ({ roomId }) => {
     handleDeleteEvent,
     loading,
   } = useCalendar(roomId);
+
+
+  const isMonthView = view === "month";
   const {
     handleEditEvent,
     selectedEvent,
@@ -37,7 +40,7 @@ const MyCalendar = ({ roomId }) => {
     handleSelectSlot,
     handleSelectEvent,
     handleEventSubmit,
-  } = useEventHandle(events, handleAddEvent);
+  } = useEventHandle(events, handleAddEvent,isMonthView);
 
   const isDarkMode = useDarkMode(handleAddEvent);
 
@@ -149,7 +152,7 @@ const MyCalendar = ({ roomId }) => {
   };
 
 
-  const isMonthView = view === "month";
+
 
   return (
     <motion.div
