@@ -1,5 +1,4 @@
-// useEventHandle.js
-import  { useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const useEventHandle = (events, handleAddEvent) => {
@@ -21,23 +20,12 @@ const useEventHandle = (events, handleAddEvent) => {
 
   const handleSelectSlot = (slotInfo) => {
     const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (slotInfo.start < now) {
+    if (slotInfo.start < today) {
       toast("You cannot add events in the past!", {
-        description: "Please select a future time slot.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const overlapping = events.some((ev) => {
-      const eventStart = new Date(ev.start);
-      const eventEnd = new Date(ev.end);
-      return slotInfo.start < eventEnd && slotInfo.end > eventStart;
-    });
-    if (overlapping) {
-      toast("Selected time overlaps with an existing event!", {
-        description: "Please choose a different time slot.",
+        description: "Please select today or a future date.",
         variant: "destructive",
       });
       return;
