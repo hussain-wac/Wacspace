@@ -16,6 +16,8 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const user = useAtomValue(globalState);
 
+
+
   if (!selectedEvent) return null;
 
   const handleDelete = () => {
@@ -57,7 +59,14 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Members</p>
                 <p className="text-gray-900 dark:text-gray-100">
-                  {selectedEvent.members?.length > 0 ? selectedEvent.members.join(", ") : "N/A"}
+                  {selectedEvent.members?.length > 0
+                    ? selectedEvent.members.map((member, index) => (
+                        <span key={index}>
+                          {member.name}
+                          {index < selectedEvent.members.length - 1 ? ", " : ""}
+                        </span>
+                      ))
+                    : "N/A"}
                 </p>
               </div>
               <div>

@@ -30,7 +30,6 @@ const useNotification = () => {
     console.log(`Registered ${userEmail} with socket`);
 
     socket.on("meetingNotification", (data) => {
-      console.log("Received notification:", data);
       toast(data.message);
 
       const newNotification = {

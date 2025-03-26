@@ -67,7 +67,6 @@ const useEventForm = ({
     ? dayjs(initialEnd).utc()
     : defaultStartUtc.add(1, "hour");
 
-  // Initial members setup
   const initialMembers = [user.name];
   const [allMembers, setAllMembers] = useState([
     {
@@ -103,12 +102,10 @@ const useEventForm = ({
     }, 500)
   );
 
-  // Function to update query when input changes
   const fetchEmployees = (query) => {
     debouncedSetQueryRef.current(query);
   };
 
-  // Initialize the form
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -121,27 +118,31 @@ const useEventForm = ({
       email: user.email,
     },
   });
-
-  // Form submit handler
   const onSubmit = async (data) => {
     setLoading(true);
-    const { title, members, meetingType, start, end, email, otherMeetingType } =
-      data;
+    const { title, meetingType, start, end, email } = data;
+
+    const memberDetails = data.members
+      .map((memberNameOrEmail) => {
+        const member = allMembers.find(
+          (m) => m.email === memberNameOrEmail || m.value === memberNameOrEmail
+        );
+        return member ? { name: member.value, email: member.email } : null;
+      })
+      .filter(Boolean);
     const eventData = {
       title,
-      organizer: members[0],
-      members: members.slice(1),
+      organizer: user.name, 
+      members: memberDetails, 
       meetingType,
-      start: dayjs.tz(start, dayjs.tz.guess()).utc().toISOString(),
-      end: dayjs.tz(end, dayjs.tz.guess()).utc().toISOString(),
-      email,
-      roomId,
-      ...(meetingType === "other" && {
-        otherMeetingType: otherMeetingType || "",
-      }),
+      start: new Date(start).toISOString(), 
+      end: new Date(end).toISOString(), 
+      email, 
     };
+
+
     try {
-      await handleAddEvent(eventData);
+      await handleAddEvent(eventData); // Send to backend
       form.reset();
       onClose();
     } catch (error) {
@@ -158,7 +159,7 @@ const useEventForm = ({
     employeeOptions,
     fetchEmployees,
     allMembers,
-    isEmployeeLoading, // Added SWR loading state to return object
+    isEmployeeLoading,
   };
 };
 
