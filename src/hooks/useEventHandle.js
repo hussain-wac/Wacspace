@@ -22,7 +22,7 @@ const useEventHandle = (events, handleAddEvent) => {
     const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+  
     if (slotInfo.start < today) {
       toast("You cannot add events in the past!", {
         description: "Please select today or a future date.",
@@ -30,10 +30,24 @@ const useEventHandle = (events, handleAddEvent) => {
       });
       return;
     }
-
+  
+    // Check for overlapping events
+    const isOverlap = events.some(event => 
+      (slotInfo.start < event.end && slotInfo.end > event.start) // Overlapping condition
+    );
+  
+    if (isOverlap) {
+      toast("Event overlaps with an existing one!", {
+        description: "Please select a different time slot.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
     setSelectedSlot(slotInfo);
     setOpenAddEvent(true);
   };
+  
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
