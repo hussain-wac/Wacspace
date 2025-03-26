@@ -79,7 +79,7 @@ const useEventForm = ({
 
   const [employeeQuery, setEmployeeQuery] = useState("");
 
-  const { data: employeeData } = useSWR(
+  const { data: employeeData, isLoading: isEmployeeLoading } = useSWR(
     employeeQuery.length >= 3
       ? `${
           import.meta.env.VITE_BASE_URL
@@ -158,6 +158,7 @@ const useEventForm = ({
     employeeOptions,
     fetchEmployees,
     allMembers,
+    isEmployeeLoading, // Added SWR loading state to return object
   };
 };
 
