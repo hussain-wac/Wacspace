@@ -19,6 +19,7 @@ import {
 } from "./ui/select";
 import { Loader2 } from "lucide-react";
 import useEventForm from "../hooks/useEventForm";
+import { color } from "framer-motion";
 
 const meetingTypeOptions = [
   { value: "internal", label: "Internal" },
@@ -27,29 +28,59 @@ const meetingTypeOptions = [
 ];
 
 const customStyles = {
-  control: (provided) => ({
+  control: (provided, state) => ({
     ...provided,
     minHeight: "38px",
     borderRadius: "4px",
+    backgroundColor: "var(--background)",
+    borderColor: state.isFocused ? "var(--primary)" : "var(--border)",
+    boxShadow: state.isFocused ? "0 0 0 1px var(--primary)" : "none",
+    "&:hover": {
+      borderColor: "var(--primary)",
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "var(--background)",
+    color: "var(--foreground)",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "var(--primary)" : "var(--background)",
+    color: state.isFocused ? "var(--primary-foreground)" : "var(--foreground)",
+    "&:hover": {
+      backgroundColor: "var(--primary)",
+      color: "var(--primary-foreground)",
+    },
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "var(--foreground)", // Ensures input text is visible in dark mode
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "var(--muted-foreground)", // Placeholder text color adapts to dark mode
   }),
   multiValue: (provided) => ({
     ...provided,
-    backgroundColor: "#d1e8ff",
+    backgroundColor: "var(--muted)",
     margin: "2px",
   }),
   multiValueLabel: (provided) => ({
     ...provided,
-    color: "#000",
+    color: "var(--foreground)",
   }),
   multiValueRemove: (provided) => ({
     ...provided,
     cursor: "pointer",
+    backgroundColor: "var(--muted-foreground)",
     ":hover": {
-      backgroundColor: "#ff4d4d",
+      backgroundColor: "var(--destructive)",
       color: "white",
     },
   }),
 };
+
 
 const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
   const { 
@@ -86,7 +117,6 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
     }
   };
 
-  // Define options based on loading state
   const selectOptions = isEmployeeLoading
     ? [{ value: "loading", label: "Loading employees...", isDisabled: true }]
     : employeeOptions.length > 0
@@ -130,7 +160,7 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
                 isDisabled={loading}
                 styles={customStyles}
                 isClearable={true}
-                isLoading={isEmployeeLoading} // Optional: adds a loading spinner to the select
+                isLoading={isEmployeeLoading}
               />
               <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>
