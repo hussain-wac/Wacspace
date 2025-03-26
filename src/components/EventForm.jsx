@@ -52,7 +52,15 @@ const customStyles = {
 };
 
 const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) => {
-  const { form, loading, onSubmit, employeeOptions, fetchEmployees, allMembers } = useEventForm({
+  const { 
+    form, 
+    loading, 
+    onSubmit, 
+    employeeOptions, 
+    fetchEmployees, 
+    allMembers,
+    isEmployeeLoading 
+  } = useEventForm({
     initialStart,
     initialEnd,
     onClose,
@@ -77,6 +85,13 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
       setSearchQuery(""); // Clear search input after selection
     }
   };
+
+  // Define options based on loading state
+  const selectOptions = isEmployeeLoading
+    ? [{ value: "loading", label: "Loading employees...", isDisabled: true }]
+    : employeeOptions.length > 0
+    ? employeeOptions
+    : allMembers;
 
   return (
     <Form {...form}>
@@ -103,7 +118,7 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
               <FormLabel>Members (First is Organizer)</FormLabel>
               <ReactSelect
                 isMulti
-                options={employeeOptions.length > 0 ? employeeOptions : allMembers}
+                options={selectOptions}
                 value={field.value.map((member) =>
                   allMembers.find((option) => option.value === member) || 
                   ({ value: member, label: member })
@@ -115,6 +130,7 @@ const EventForm = ({ initialStart, initialEnd, onClose, roomId, isMonthView }) =
                 isDisabled={loading}
                 styles={customStyles}
                 isClearable={true}
+                isLoading={isEmployeeLoading} // Optional: adds a loading spinner to the select
               />
               <FormMessage>{form.formState.errors.members?.message}</FormMessage>
             </FormItem>
