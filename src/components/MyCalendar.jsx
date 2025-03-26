@@ -81,7 +81,7 @@ const MyCalendar = ({ roomId }) => {
     const today = moment().startOf("day").toDate();
     const isToday = moment(date).isSame(today, "day");
     const isPast = moment(date).isBefore(today, "day");
-
+  
     if (isToday) {
       return {
         style: {
@@ -90,19 +90,22 @@ const MyCalendar = ({ roomId }) => {
           cursor: "pointer",
         },
         className: "today-cell",
-        onClick: () => onView("day"),
+        onClick: () => onView("month"), // Keep today clickable
       };
-    } else if (isPast) {
+    } else if (isPast && view !== "month") { 
+      // Block past days except in month view
       return {
         style: {
           backgroundColor: isDarkMode ? "#3A3A3A" : "#B0B0B0",
           color: isDarkMode ? "#D1D5DB" : "#374151",
           opacity: 0.8,
+          pointerEvents: "none", // Disable clicks on past days (except today in month view)
         },
       };
     }
     return {};
   };
+  
 
   const filteredEvents =
     view === "day"
