@@ -22,10 +22,16 @@ const CustomEvent = ({ event, isDarkMode }) => {
         >
           <div className="flex flex-col">
             <p className="font-medium text-sm">{event.title}</p>
-            <p className="text-xs text-gray-300 mt-0.5">
-              Members:{" "}
-              {event.members?.length > 0 ? event.members.join(", ") : "N/A"}
-            </p>
+            <p className="">
+                  {event.members?.length > 0
+                    ? event.members.map((member, index) => (
+                        <span key={index}>
+                          {member.name}
+                          {index <event.members.length - 1 ? ", " : ""}
+                        </span>
+                      ))
+                    : "N/A"}
+                </p>
           </div>
         </TooltipContent>
       </Tooltip>
