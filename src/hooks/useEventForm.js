@@ -140,9 +140,6 @@ const useEventForm = ({
       email, 
     };
 
-    console.log("evt: ", eventData);
-    console.log("data.members:", data.members);
-    console.log("allMembers:", allMembers);
 
     try {
       await handleAddEvent(eventData); // Send to backend

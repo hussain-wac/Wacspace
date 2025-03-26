@@ -17,7 +17,6 @@ export const EventDetailsDialog = ({ open, onOpenChange, selectedEvent, onEdit, 
   const user = useAtomValue(globalState);
 
 
-  console.log(selectedEvent?.members);
 
   if (!selectedEvent) return null;
 
